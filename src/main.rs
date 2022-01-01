@@ -1,4 +1,4 @@
-use actix_web::{App, HttpServer};
+use actix_web::{web, App, HttpServer};
 
 use config::{configure_app, configure_db};
 
@@ -9,7 +9,7 @@ mod models;
 #[actix_web::main]
 async fn actix_run() -> std::io::Result<()> {
     let pool = match configure_db().await {
-        Ok(p) => p,
+        Ok(p) => web::Data::new(p),
         Err(e) => panic!("{}", e),
     };
 
