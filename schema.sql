@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS posts;
+
+CREATE TABLE IF NOT EXISTS posts (
+    id INTEGER PRIMARY KEY NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL
+);
