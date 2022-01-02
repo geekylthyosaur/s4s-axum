@@ -1,10 +1,11 @@
 use actix_web::{web, App, HttpServer};
 
-use config::{configure_app, configure_db};
+use config::{configure_app, configure_db, configure_json};
 
 mod config;
 mod handlers;
 mod models;
+mod error;
 
 #[actix_web::main]
 async fn actix_run() -> std::io::Result<()> {
@@ -16,6 +17,7 @@ async fn actix_run() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(pool.clone())
+            .app_data(configure_json)
             .configure(configure_app)
     })
     .bind(("127.0.0.1", 8000))?

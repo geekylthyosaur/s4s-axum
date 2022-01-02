@@ -1,8 +1,8 @@
-use actix_web::web;
+use actix_web::web::{self, JsonConfig};
 
 use sqlx::{SqlitePool};
 
-use crate::handlers::http::posts;
+use crate::{ handlers::http::posts, error::Error };
 
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -19,6 +19,12 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                     .route(web::delete().to(posts::delete_post))
             )
     );
+}
+
+pub fn configure_json() -> JsonConfig {
+    JsonConfig::default().error_handler(|err, req| {
+        Error::json_error_handler(err, req)
+    })
 }
 
 pub async fn configure_db() -> Result<SqlitePool, sqlx::Error> {
