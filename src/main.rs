@@ -1,6 +1,14 @@
-use actix_web::{web, App, HttpServer};
+use actix_web::{
+    web, 
+    App, 
+    HttpServer
+};
 
-use config::{configure_app, configure_db, configure_json};
+use config::{
+    configure_app, 
+    configure_db, 
+    configure_json
+};
 
 mod config;
 mod handlers;
@@ -27,6 +35,7 @@ async fn actix_run() -> std::io::Result<()> {
 
 fn main() {
     dotenv::dotenv().ok();
+    env_logger::init();
 
     match actix_run() {
         Err(e) => panic!("{}", e),

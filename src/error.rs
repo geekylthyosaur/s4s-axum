@@ -2,11 +2,10 @@ use actix_web::{
     HttpRequest, 
     HttpResponse, 
     ResponseError, 
-    error::Error as ActixError,
-    error::JsonPayloadError,
-    };
+    error::{Error as ActixError, JsonPayloadError},
+};
 use serde::Serialize;
-use sqlx::{Error as SqlxError};
+use sqlx::Error as SqlxError;
 use serde_json::json;
 
 #[derive(Debug, Serialize)]

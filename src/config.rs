@@ -1,8 +1,13 @@
-use actix_web::web::{self, JsonConfig};
+use actix_web::{
+    web::{self, JsonConfig}, 
+};
 
-use sqlx::{SqlitePool};
+use sqlx::SqlitePool;
 
-use crate::{ handlers::http::posts, error::Error };
+use crate::{ 
+    handlers::http::posts, 
+    error::Error 
+};
 
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
     cfg.service(
