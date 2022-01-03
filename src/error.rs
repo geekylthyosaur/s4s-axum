@@ -8,6 +8,8 @@ use serde::Serialize;
 use sqlx::Error as SqlxError;
 use serde_json::json;
 
+use crate::models::json_response::JsonResponse;
+
 #[derive(Debug, Serialize)]
 pub struct JsonError {
     code: u16,
@@ -25,9 +27,12 @@ pub enum Error {
 impl ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         match self {
-            Error::NotFound(e) => HttpResponse::NotFound().json(e),
-            Error::UnprocessableEntity(e) => HttpResponse::UnprocessableEntity().json(e),
-            Error::InternalServerError(e) => HttpResponse::InternalServerError().json(e),
+            Error::NotFound(e) => 
+                HttpResponse::NotFound().json(JsonResponse::new(None, Some(e.to_value()))),
+            Error::UnprocessableEntity(e) => 
+                HttpResponse::UnprocessableEntity().json(JsonResponse::new(None, Some(e.to_value()))),
+            Error::InternalServerError(e) => 
+                HttpResponse::InternalServerError().json(JsonResponse::new(None, Some(e.to_value()))),
         }
     }
 }
@@ -36,16 +41,16 @@ impl From<SqlxError> for Error {
     fn from(error: SqlxError) -> Self {
         match &error {
             SqlxError::RowNotFound => Error::NotFound(
-                    JsonError { code: 404, status: "NotFound".to_string(), msg: error.to_string()} 
+                    JsonError::new(404, "NotFound".to_string(), error.to_string())
                 ),
             SqlxError::ColumnNotFound(s) =>Error::NotFound(
-                    JsonError { code: 404, status: "NotFound".to_string(), msg: s.to_string()} 
+                    JsonError::new(404, "NotFound".to_string(), s.to_string())
                 ),
             SqlxError::Database(e) => Error::UnprocessableEntity(
-                    JsonError { code: 422, status: "UnprocessableEntity".to_string(), msg: e.to_string()} 
+                    JsonError::new(422, "UnprocessableEntity".to_string(), e.to_string()) 
                 ),
             _ => Error::InternalServerError(
-                    JsonError { code: 500, status: "InternalServerError".to_string(), msg: "".to_string()} 
+                    JsonError::new(500, "InternalServerError".to_string(), "".to_string())
                 ),
         }
     }
@@ -56,16 +61,26 @@ impl Error {
         let detail = err.to_string();
         let resp = match &err {
             JsonPayloadError::ContentType => HttpResponse::UnsupportedMediaType().json(json!( 
-                    JsonError { code: 415, status: "UnsupportedMediaType".to_string(), msg: detail }
+                    JsonError::new(415, "UnsupportedMediaType".to_string(), detail)
                 )),
             JsonPayloadError::Deserialize(e) if e.is_data() => HttpResponse::UnprocessableEntity().json(json!( 
-                    JsonError { code: 422, status: "UnprocessableEntity".to_string(), msg: e.to_string() }
+                    JsonError::new(422, "UnprocessableEntity".to_string(), e.to_string())
                 )),
             _ => HttpResponse::BadRequest().json(json!( 
-                    JsonError { code: 400, status: "BadRequest".to_string(), msg: detail } 
+                    JsonError::new(400, "BadRequest".to_string(), detail)
                 )),
         };
         actix_web::error::InternalError::from_response(err, resp).into()
+    }
+}
+
+impl JsonError {
+    fn new(code: u16, status: String, msg: String) -> Self {
+        JsonError { code, status, msg }
+    }
+
+    fn to_value(&self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap()
     }
 }
 
