@@ -4,14 +4,17 @@ use actix_web::{
     web
 };
 
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 use crate::{
     handlers::db::posts, 
-    models::{post::Post, json_response::JsonResponse},
+    models::{
+        post::{PostToCreate, PostToUpdate}, 
+        json_response::JsonResponse
+    },
 };
 
-pub async fn get_posts(pool: web::Data<SqlitePool>) -> HttpResponse {
+pub async fn get_posts(pool: web::Data<PgPool>) -> HttpResponse {
     match posts::get_posts(pool.get_ref()).await {
         Ok(posts) => 
             HttpResponse::Ok().json(
@@ -21,7 +24,7 @@ pub async fn get_posts(pool: web::Data<SqlitePool>) -> HttpResponse {
     }
 }
 
-pub async fn get_post(pool: web::Data<SqlitePool>, id: web::Path<u32>) -> HttpResponse {
+pub async fn get_post(pool: web::Data<PgPool>, id: web::Path<i32>) -> HttpResponse {
     match posts::get_post(pool.get_ref(), *id).await {
         Ok(post) => 
             HttpResponse::Ok().json(JsonResponse::new(Some(post.to_value()), None)),
@@ -29,21 +32,21 @@ pub async fn get_post(pool: web::Data<SqlitePool>, id: web::Path<u32>) -> HttpRe
     }
 }
 
-pub async fn create_post(pool: web::Data<SqlitePool>, req: web::Json<Post>) -> HttpResponse {
+pub async fn create_post(pool: web::Data<PgPool>, req: web::Json<PostToCreate>) -> HttpResponse {
     match posts::create_post(pool.get_ref(), req.into_inner()).await {
         Ok(_) => HttpResponse::NoContent().finish(),
         Err(e) => e.error_response(),
     }
 }
 
-pub async fn edit_post(pool: web::Data<SqlitePool>, req: web::Json<Post>, id: web::Path<u32>) -> HttpResponse {
+pub async fn edit_post(pool: web::Data<PgPool>, req: web::Json<PostToUpdate>, id: web::Path<i32>) -> HttpResponse {
     match posts::edit_post(pool.get_ref(), *id, req.into_inner()).await {
         Ok(_) => HttpResponse::NoContent().finish(),
         Err(e) => e.error_response(),
     }
 }
 
-pub async fn delete_post(pool: web::Data<SqlitePool>, id: web::Path<u32>) -> HttpResponse {
+pub async fn delete_post(pool: web::Data<PgPool>, id: web::Path<i32>) -> HttpResponse {
     match posts::delete_post(pool.get_ref(), *id).await {
         Ok(_) => HttpResponse::NoContent().finish(),
         Err(e) => e.error_response(),
