@@ -5,7 +5,7 @@ use actix_web::{
 use sqlx::PgPool;
 
 use crate::{ 
-    handlers::http::{posts, users}, 
+    handlers::http::{posts, users, scores}, 
     error::Error 
 };
 
@@ -38,6 +38,29 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                     .route(web::get().to(users::get_user))
                     .route(web::patch().to(users::edit_user))
                     .route(web::delete().to(users::delete_user))
+            )
+        )
+        .service(
+            web::scope("/scores")
+            .service(
+                web::resource("")
+                    .route(web::post().to(scores::create_score))
+            )
+            .service(
+                web::scope("/{uuid}")
+                .service(
+                    web::resource("")
+                    .route(web::get().to(scores::get_score))
+                    .route(web::delete().to(scores::delete_score))
+                )
+                .service(
+                    web::resource("/inc")
+                    .route(web::patch().to(scores::increase_score))
+                )
+                .service(
+                    web::resource("/dec")
+                    .route(web::patch().to(scores::decrease_score))
+                )
             )
         )
     );

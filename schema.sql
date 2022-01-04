@@ -1,22 +1,30 @@
-DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS users;
-
-CREATE TABLE IF NOT EXISTS posts (
-    id SERIAL PRIMARY KEY NOT NULL,
-    uuid UUID NOT NULL,
-    owner_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    date_created TIMESTAMPTZ NOT NULL DEFAULT now(),
-    date_updated TIMESTAMPTZ
-);
+DROP TABLE IF EXISTS posts;
+DROP TABLE IF EXISTS scores;
 
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY NOT NULL,
+    id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
     uuid UUID NOT NULL,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
     passwd_hash TEXT NOT NULL,
     about TEXT,
-    join_date TIMESTAMPTZ NOT NULL DEFAULT now()
+    join_date TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY(id)
+);
+
+CREATE TABLE IF NOT EXISTS posts (
+    id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
+    uuid UUID NOT NULL,
+    owner_id INT NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    date_created TIMESTAMPTZ NOT NULL DEFAULT now(),
+    date_updated TIMESTAMPTZ,
+    PRIMARY KEY(id)
+);
+
+CREATE TABLE IF NOT EXISTS scores (
+    uuid UUID PRIMARY KEY NOT NULL,
+    score INT NOT NULL DEFAULT 0
 );
