@@ -1,11 +1,9 @@
 use serde::{Serialize, Deserialize};
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
 #[derive(Serialize, Deserialize)]
 pub struct Post {
     pub id: i32,
-    pub uuid: Uuid,
     pub owner_id: i32,
     pub title: String,
     pub content: String,

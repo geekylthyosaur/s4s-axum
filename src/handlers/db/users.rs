@@ -7,10 +7,10 @@ use crate::{
 
 pub async fn get_users(pool: &PgPool) -> Result<Vec<User>, Error> {
     Ok(
-        sqlx::query_as!(User, "
+        sqlx::query_as!(User, r#"
                 SELECT *
                 FROM users
-            ")
+            "#)
         .fetch_all(pool)
         .await?
     )
@@ -29,24 +29,34 @@ pub async fn get_user(pool: &PgPool, id: i32) -> Result<User, Error> {
 }
 
 pub async fn create_user(pool: &PgPool, user: UserToCreate) -> Result<(), Error> {
-    let time = chrono::Utc::now();
-    let uuid = uuid::Uuid::new_v4();
+    let mut tr = pool.begin().await?;
+    let id: i32 = sqlx::query!(r#"
+            INSERT INTO users (username, about) 
+                VALUES ($1, $2)
+            RETURNING id
+        "#, user.username, user.about)
+    .fetch_one(&mut tr)
+    .await?
+    .id;
+
     sqlx::query!(r#"
-            INSERT INTO users (uuid, username, email, passwd_hash, about, join_date) 
-            VALUES ($1, $2, $3, $4, $5, $6)
-        "#, uuid, user.username, user.email, user.passwd_hash, user.about, time)
-    .execute(pool)
+            INSERT INTO credentials (owner_id, email, pwd_hash) 
+                VALUES ($1, $2, $3)
+        "#, id, user.email, user.pwd_hash)
+    .execute(&mut tr)
     .await?;
     
+    tr.commit().await?;
+
     Ok(())
 }
 
 pub async fn edit_user(pool: &PgPool, id: i32, user: UserToUpdate) -> Result<(), Error> {
     sqlx::query!(r#"
             UPDATE users 
-            SET username = $2, email = $3, passwd_hash = $4, about = $5
+            SET username = $2, about = $3
             WHERE id = $1
-        "#, id, user.username, user.email, user.passwd_hash, user.about)
+        "#, id, user.username, user.about)
     .execute(pool)
     .await?;
 

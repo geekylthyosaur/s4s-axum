@@ -3,7 +3,6 @@ use actix_web::{
     ResponseError, 
     web
 };
-
 use sqlx::PgPool;
 
 use crate::{
