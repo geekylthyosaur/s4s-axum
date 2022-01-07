@@ -100,5 +100,5 @@ pub fn configure_json() -> JsonConfig {
 }
 
 pub async fn configure_db() -> Result<PgPool, sqlx::Error> {
-    PgPool::connect("postgresql://localhost/blog_db?user=dmytro&password=1111").await
+    PgPool::connect(&dotenv::var("DATABASE_URL").expect("Missing DATABASE_URL environment variable.")).await
 }
