@@ -12,13 +12,14 @@ path = "src/main.rs"
 name = "blog"
 
 [dependencies]
-actix-web = "4.0.0-rc.2"
+actix-web = "4.0.0-rc.3"
 serde = "1.0.132"
 tracing = { version = "0.1.30", features = ["log"] }
 tracing-log = "0.1.2"
 tracing-actix-web = "0.5.0-rc.3"
 tracing-subscriber = { version = "0.3.8", features = ["registry", "env-filter"] }
 tracing-bunyan-formatter = "0.3.2"
+validator = { version = "0.14.0", features = ["derive"] }
 uuid = { version = "0.8.2", features = ["v4"] }
 secrecy = { version = "0.8", features = ["serde"] }
 sqlx = { version = "0.5.10", features = ["postgres", "chrono", "runtime-actix-rustls"] }

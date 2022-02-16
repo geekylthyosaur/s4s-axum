@@ -3,7 +3,7 @@ use once_cell::sync::Lazy;
 
 use std::net::TcpListener;
 
-use blog::{telemetry, startup};
+use blog::{startup, telemetry};
 
 static TRACING: Lazy<()> = Lazy::new(|| {
     let subscriber = telemetry::get_subscriber("test".into(), "debug".into());

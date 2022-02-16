@@ -1,32 +1,31 @@
 use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
 use serde::Deserialize;
 use sqlx::{PgPool, Postgres, Transaction};
+use std::fmt::Debug;
+use validator::{Validate, ValidationErrors};
 
 use crate::user::model::NewUser;
 
 #[derive(Deserialize)]
 pub struct SignUpForm {
-    username: String,
-    about: Option<String>,
-    email: String,
-    password: String,
+    pub username: String,
+    pub about: Option<String>,
+    pub email: String,
+    pub password: String,
 }
 
 impl TryFrom<SignUpForm> for NewUser {
-    type Error = SignUpError;
+    type Error = ValidationErrors;
 
     fn try_from(form: SignUpForm) -> Result<Self, Self::Error> {
-        Ok(NewUser {
-            username: form.username,
-            about: form.about,
-            email: form.email,
-            password: form.password,
-        })
+        let new_user = Self::new(form.username, form.about, form.email, form.password);
+        new_user.validate()?;
+        Ok(new_user)
     }
 }
 
 pub enum SignUpError {
-    Validation(String), // TODO: email validation
+    Validation(ValidationErrors),
     AlreadyExist(UniqueField),
     Unexpected(Box<dyn std::error::Error>),
 }
@@ -55,6 +54,12 @@ impl ResponseError for SignUpError {
     }
 }
 
+impl From<ValidationErrors> for SignUpError {
+    fn from(e: ValidationErrors) -> Self {
+        Self::Validation(e)
+    }
+}
+
 impl From<sqlx::Error> for SignUpError {
     fn from(e: sqlx::Error) -> Self {
         match e {
@@ -75,7 +80,7 @@ impl From<sqlx::Error> for SignUpError {
 impl std::fmt::Display for SignUpError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Validation(s) => write!(f, "Validation error: {}.", s),
+            Self::Validation(e) => write!(f, "{}", e),
             Self::AlreadyExist(v) => write!(f, "This {} already taken.", v),
             Self::Unexpected(_) => write!(f, "Unexpected error happened."),
         }
@@ -85,7 +90,7 @@ impl std::fmt::Display for SignUpError {
 impl std::fmt::Debug for SignUpError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Validation(s) => write!(f, "Validation error: {}.", s),
+            Self::Validation(e) => write!(f, "{}", e),
             Self::AlreadyExist(v) => write!(f, "This {} already taken.", v),
             Self::Unexpected(e) => write!(f, "{}", e),
         }
@@ -113,6 +118,10 @@ pub async fn signup(
     pool: web::Data<PgPool>,
     form: web::Json<SignUpForm>,
 ) -> Result<HttpResponse, SignUpError> {
+    let user = form.into_inner().try_into().map_err(|e| {
+        tracing::error!("Failed to validate form data: {}", e);
+        e
+    })?;
     let mut transaction = pool.begin().await.map_err(|e| {
         tracing::error!(
             "Failed to acquire a Postgres connection from the pool: {}",
@@ -120,7 +129,6 @@ pub async fn signup(
         );
         e
     })?;
-    let user = form.into_inner().try_into()?;
     let user_id = insert_user(&mut transaction, &user).await.map_err(|e| {
         tracing::error!("Failed to insert new user in the database: {}", e);
         e
@@ -143,7 +151,7 @@ pub async fn signup(
 
 #[tracing::instrument(
     name = "Saving new user details in the database",
-    skip(transaction, user),
+    skip(transaction, user)
 )]
 async fn insert_user(
     transaction: &mut Transaction<'_, Postgres>,
@@ -168,7 +176,7 @@ async fn insert_user(
 
 #[tracing::instrument(
     name = "Saving new user credentials in the database",
-    skip(transaction, user, user_id),
+    skip(transaction, user, user_id)
 )]
 async fn save_credentials(
     transaction: &mut Transaction<'_, Postgres>,
