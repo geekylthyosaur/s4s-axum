@@ -18,7 +18,10 @@ pub struct NewUser {
 }
 
 fn is_ascii_alphabetic_and_lowercase(username: &str) -> Result<(), ValidationError> {
-    if !username.chars().all(|c| char::is_ascii_alphabetic(&c) && char::is_lowercase(c)) {
+    if !username
+        .chars()
+        .all(|c| char::is_ascii_alphabetic(&c) && char::is_lowercase(c))
+    {
         return Err(ValidationError::new("Alphanumeric"));
     }
 

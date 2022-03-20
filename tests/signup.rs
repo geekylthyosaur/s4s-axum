@@ -58,7 +58,7 @@ async fn signup_returns_201_for_duplicate_username() {
     let client = reqwest::Client::new();
 
     let data = TestUser {
-        username: "NewUsername".to_string(),
+        username: "secondusername".to_string(),
         about: None,
         email: "newExample@mail.com".to_string(),
         password: "password".to_string(),

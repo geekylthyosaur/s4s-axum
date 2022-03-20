@@ -18,8 +18,25 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
     );
 }
 
+pub struct DatabaseConfig {
+    database_url: String,
+}
+
+impl DatabaseConfig {
+    pub fn new() -> Self {
+        Self {
+            database_url: format!("postgres://{}:{}@{}:{}/{}",
+               dotenv::var("DB_USER").expect("Missing DB_USER environment variable"),
+               dotenv::var("DB_PASSWORD").expect("Missing DB_PASSWORD environment variable"),
+               dotenv::var("DB_HOST").expect("Missing DB_HOST environment variable"),
+               dotenv::var("DB_PORT").expect("Missing DB_PORT environment variable"),
+               dotenv::var("DB_NAME").expect("Missing DB_NAME environment variable"))
+        }
+    }
+}
+
 pub fn configure_db() -> Result<PgPool, sqlx::Error> {
     PgPool::connect_lazy(
-        &dotenv::var("DATABASE_URL").expect("Missing DATABASE_URL environment variable."),
+        &DatabaseConfig::new().database_url
     )
 }
