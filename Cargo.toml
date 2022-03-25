@@ -22,7 +22,7 @@ tracing-bunyan-formatter = "0.3.2"
 validator = { version = "0.14.0", features = ["derive"] }
 uuid = { version = "0.8.2", features = ["v4"] }
 secrecy = { version = "0.8.0", features = ["serde"] }
-sqlx = { version = "0.5.11", features = ["postgres", "chrono", "offline", "runtime-actix-rustls"] }
+sqlx = { version = "0.5.11", features = ["postgres", "uuid", "chrono", "offline", "runtime-actix-rustls"] }
 chrono = { version = "0.4.19", features = ["serde"] }
 dotenv = "0.15.0"
 

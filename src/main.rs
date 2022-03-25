@@ -11,3 +11,10 @@ async fn main() -> std::io::Result<()> {
     let listener = std::net::TcpListener::bind("127.0.0.1:8000").expect("Failed to bind a port");
     run(listener)?.await
 }
+
+/*
+    1. TODO: single out database configuration
+    2. TODO: database -> docker
+    5. TODO: single out validation
+    6. TODO: randomize tests data
+*/

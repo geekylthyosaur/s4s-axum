@@ -1,7 +1,7 @@
 use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
 use serde::Deserialize;
 use sqlx::{PgPool, Postgres, Transaction};
-use std::fmt::Debug;
+use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
 
 use crate::user::model::NewUser;
@@ -156,40 +156,40 @@ pub async fn signup(
 async fn insert_user(
     transaction: &mut Transaction<'_, Postgres>,
     user: &NewUser,
-) -> Result<i32, sqlx::Error> {
-    // TODO: replace id with uuid
-    let user_id = sqlx::query!(
+) -> Result<Uuid, sqlx::Error> {
+    let user_uuid = sqlx::query!(
         r#"
-            INSERT INTO users (username, about) 
-                VALUES ($1, $2)
-            RETURNING id
+            INSERT INTO users (uuid, username, about)
+                VALUES ($1, $2, $3)
+            RETURNING uuid
         "#,
+        Uuid::new_v4(),
         user.username,
         user.about
     )
     .fetch_one(transaction)
     .await?
-    .id;
+    .uuid;
 
-    Ok(user_id)
+    Ok(user_uuid)
 }
 
 #[tracing::instrument(
     name = "Saving new user credentials in the database",
-    skip(transaction, user, user_id)
+    skip(transaction, user, user_uuid)
 )]
 async fn save_credentials(
     transaction: &mut Transaction<'_, Postgres>,
     user: &NewUser,
-    user_id: i32,
+    user_uuid: Uuid,
 ) -> Result<(), sqlx::Error> {
     // TODO: password auth https://www.lpalmieri.com/posts/password-authentication-in-rust/
     sqlx::query!(
         r#"
-            INSERT INTO credentials (owner_id, email, pwd_hash) 
+            INSERT INTO credentials (owner_uuid, email, pwd_hash)
                 VALUES ($1, $2, $3)
         "#,
-        user_id,
+        user_uuid,
         user.email,
         user.password
     )

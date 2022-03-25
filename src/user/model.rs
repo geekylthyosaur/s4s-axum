@@ -22,7 +22,7 @@ fn is_ascii_alphabetic_and_lowercase(username: &str) -> Result<(), ValidationErr
         .chars()
         .all(|c| char::is_ascii_alphabetic(&c) && char::is_lowercase(c))
     {
-        return Err(ValidationError::new("Alphanumeric"));
+        return Err(ValidationError::new("ascii_alphabetic_and_lowercase"));
     }
 
     Ok(())
