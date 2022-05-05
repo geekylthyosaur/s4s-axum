@@ -1,8 +1,8 @@
 use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
-use serde::Deserialize;
-use sqlx::{PgPool, Postgres, Transaction};
-use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
+use sqlx::{PgPool, Postgres, Transaction};
+use serde::Deserialize;
+use uuid::Uuid;
 
 use crate::user::model::NewUser;
 
@@ -12,16 +12,6 @@ pub struct SignUpForm {
     pub about: Option<String>,
     pub email: String,
     pub password: String,
-}
-
-impl TryFrom<SignUpForm> for NewUser {
-    type Error = ValidationErrors;
-
-    fn try_from(form: SignUpForm) -> Result<Self, Self::Error> {
-        let new_user = Self::new(form.username, form.about, form.email, form.password);
-        new_user.validate()?;
-        Ok(new_user)
-    }
 }
 
 pub enum SignUpError {
@@ -35,6 +25,16 @@ pub enum UniqueField {
     Username,
 }
 
+impl TryFrom<SignUpForm> for NewUser {
+    type Error = ValidationErrors;
+
+    fn try_from(form: SignUpForm) -> Result<Self, Self::Error> {
+        let new_user = Self::new(form.username, form.about, form.email, form.password);
+        new_user.validate()?;
+        Ok(new_user)
+    }
+}
+
 impl std::fmt::Display for UniqueField {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -45,7 +45,7 @@ impl std::fmt::Display for UniqueField {
 }
 
 impl ResponseError for SignUpError {
-    fn status_code(&self) -> actix_web::http::StatusCode {
+    fn status_code(&self) -> StatusCode {
         match self {
             SignUpError::Validation(_) => StatusCode::BAD_REQUEST,
             SignUpError::AlreadyExist(_) => StatusCode::CONFLICT,
@@ -81,7 +81,7 @@ impl std::fmt::Display for SignUpError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Validation(e) => write!(f, "{}", e),
-            Self::AlreadyExist(v) => write!(f, "This {} already taken.", v),
+            Self::AlreadyExist(v) => write!(f, "This {} is already taken.", v),
             Self::Unexpected(_) => write!(f, "Unexpected error happened."),
         }
     }
@@ -91,7 +91,7 @@ impl std::fmt::Debug for SignUpError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Validation(e) => write!(f, "{}", e),
-            Self::AlreadyExist(v) => write!(f, "This {} already taken.", v),
+            Self::AlreadyExist(v) => write!(f, "This {} is already taken.", v),
             Self::Unexpected(e) => write!(f, "{}", e),
         }
     }
@@ -118,34 +118,11 @@ pub async fn signup(
     pool: web::Data<PgPool>,
     form: web::Json<SignUpForm>,
 ) -> Result<HttpResponse, SignUpError> {
-    let user = form.into_inner().try_into().map_err(|e| {
-        tracing::error!("Failed to validate form data: {}", e);
-        e
-    })?;
-    let mut transaction = pool.begin().await.map_err(|e| {
-        tracing::error!(
-            "Failed to acquire a Postgres connection from the pool: {}",
-            e
-        );
-        e
-    })?;
-    let user_id = insert_user(&mut transaction, &user).await.map_err(|e| {
-        tracing::error!("Failed to insert new user in the database: {}", e);
-        e
-    })?;
-    save_credentials(&mut transaction, &user, user_id)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to save the credentials for a new user: {}", e);
-            e
-        })?;
-    transaction.commit().await.map_err(|e| {
-        tracing::error!(
-            "Failed to commit SQL transaction to store a new user: {}",
-            e
-        );
-        e
-    })?;
+    let new_user = form.into_inner().try_into()?;
+    let mut transaction = pool.begin().await?;
+    let user_uuid = insert_user(&mut transaction, &new_user).await?;
+    save_credentials(&mut transaction, &new_user, user_uuid).await?;
+    transaction.commit().await?;
     Ok(HttpResponse::Created().finish())
 }
 
