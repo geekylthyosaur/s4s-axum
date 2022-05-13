@@ -1,4 +1,5 @@
 use validator::{Validate, ValidationError};
+use secrecy::Secret;
 
 #[derive(Validate)]
 pub struct NewUser {
@@ -13,8 +14,7 @@ pub struct NewUser {
     pub about: Option<String>,
     #[validate(email(message = "Isn't valid email."))]
     pub email: String,
-    #[validate(length(min = 6, message = "Minimum length is 6 characters."))]
-    pub password: String,
+    pub password: Secret<String>,
 }
 
 fn is_ascii_alphabetic_and_lowercase(username: &str) -> Result<(), ValidationError> {
@@ -29,7 +29,7 @@ fn is_ascii_alphabetic_and_lowercase(username: &str) -> Result<(), ValidationErr
 }
 
 impl NewUser {
-    pub fn new(username: String, about: Option<String>, email: String, password: String) -> Self {
+    pub fn new(username: String, about: Option<String>, email: String, password: Secret<String>) -> Self {
         NewUser {
             username,
             about,

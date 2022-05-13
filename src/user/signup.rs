@@ -1,17 +1,18 @@
 use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
+use secrecy::{Secret, ExposeSecret};
 
 use crate::user::model::NewUser;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub struct SignUpForm {
     pub username: String,
     pub about: Option<String>,
     pub email: String,
-    pub password: String,
+    pub password: Secret<String>,
 }
 
 pub enum SignUpError {
@@ -168,7 +169,7 @@ async fn save_credentials(
         "#,
         user_uuid,
         user.email,
-        user.password
+        user.password.expose_secret()
     )
     .execute(transaction)
     .await?;
@@ -183,6 +184,7 @@ mod tests {
         web::{Data, Json},
         ResponseError,
     };
+    use secrecy::Secret;
 
     use super::{signup, SignUpForm};
     use crate::{
@@ -197,7 +199,7 @@ mod tests {
             username: random_valid_username(),
             about: None,
             email: random_valid_email(),
-            password: random_ascii_string(6..32),
+            password: Secret::new(random_ascii_string(6..32)),
         }
     }
 
@@ -206,7 +208,7 @@ mod tests {
             username: random_ascii_string(1..64),
             about: None,
             email: random_ascii_string(1..64),
-            password: random_ascii_string(1..64),
+            password: Secret::new(random_ascii_string(1..64)),
         }
     }
 
