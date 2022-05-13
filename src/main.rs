@@ -27,8 +27,7 @@ fn main() {
     let subscriber = telemetry::get_subscriber("blog".into(), "info".into());
     telemetry::init_subscriber(subscriber);
 
-    match actix_run() {
-        Err(e) => panic!("{}", e),
-        Ok(_) => (),
-    };
+    if let Err(e) = actix_run() {
+        panic!("{}", e)
+    }
 }
