@@ -68,6 +68,11 @@ pub mod test_config {
         // using PgPool::connect_lazy() sometimes there is deadlock
         // so use PgPool::connect() instead
         let pool = PgPool::connect(TestDatabaseConfig::new().database_url.as_ref()).await?;
+        truncate_test_database(&pool).await;
+        Ok(pool)
+    }
+
+    async fn truncate_test_database(pool: &PgPool) {
         sqlx::query!(
             r#"
             DO $$ DECLARE 
@@ -80,9 +85,8 @@ pub mod test_config {
             END $$;
         "#
         )
-        .execute(&pool)
+        .execute(pool)
         .await
         .expect("Failed to truncate all test database tables!");
-        Ok(pool)
     }
 }
