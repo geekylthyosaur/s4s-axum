@@ -184,8 +184,8 @@ mod tests {
     };
 
     use crate::{
-        test_utils::lazy_init_subscriber,
-        test_config::configure_db,
+        utils::test_utils::lazy_init_subscriber,
+        config::test_config::configure_db,
     };
     use super::{SignUpForm, signup};
 
