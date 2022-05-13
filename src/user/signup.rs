@@ -183,23 +183,27 @@ mod tests {
         web::{Data, Json},
     };
 
-    use crate::config::configure_db;
-    use crate::test_utils::lazy_init_subscriber;
+    use crate::{
+        test_utils::lazy_init_subscriber,
+        test_config::configure_db,
+    };
     use super::{SignUpForm, signup};
 
     #[actix_web::test]
     async fn signup_works() {
         lazy_init_subscriber();
 
-        let pool = configure_db().unwrap();
-        let pool = Data::new(pool);
-        let form_data = SignUpForm {
-            username: "usasdername".to_string(),
+        let pool = Data::new(
+            configure_db()
+            .await
+            .expect("Failed to configure test database")
+        );
+        let form = Json(SignUpForm {
+            username: "username".to_string(),
             about: None,
-            email: "exampasdle@email.com".to_string(),
+            email: "example@email.com".to_string(),
             password: "password".to_string(),
-        };
-        let form = Json(form_data);
+        });
         let resp = signup(pool, form).await;
         assert_eq!(resp.unwrap().status(), actix_web::http::StatusCode::CREATED);
     }
@@ -208,15 +212,17 @@ mod tests {
     async fn signup_fails_on_username_validation_error() {
         lazy_init_subscriber();
 
-        let pool = configure_db().unwrap();
-        let pool = Data::new(pool);
-        let form_data = SignUpForm {
-            username: "ASD".to_string(),
+        let pool = Data::new(
+            configure_db()
+            .await
+            .expect("Failed to configure test database")
+        );
+        let form = Json(SignUpForm {
+            username: "USERNAME".to_string(),
             about: None,
-            email: "exampasdle@email.com".to_string(),
+            email: "example@email.com".to_string(),
             password: "password".to_string(),
-        };
-        let form = Json(form_data);
+        });
         let resp = signup(pool, form).await;
         assert_eq!(resp.err().unwrap().status_code(), actix_web::http::StatusCode::BAD_REQUEST);
     }
