@@ -1,8 +1,8 @@
 use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
-use validator::{Validate, ValidationErrors};
+use serde::{Deserialize, Serialize};
 use sqlx::{PgPool, Postgres, Transaction};
-use serde::{Serialize, Deserialize};
 use uuid::Uuid;
+use validator::{Validate, ValidationErrors};
 
 use crate::user::model::NewUser;
 
@@ -179,15 +179,36 @@ async fn save_credentials(
 #[cfg(test)]
 mod tests {
     use actix_web::{
-        ResponseError,
+        http::StatusCode,
         web::{Data, Json},
+        ResponseError,
     };
 
+    use super::{signup, SignUpForm};
     use crate::{
-        utils::test_utils::lazy_init_subscriber,
         config::test_config::configure_db,
+        utils::test_utils::{
+            lazy_init_subscriber, random_ascii_string, random_valid_email, random_valid_username,
+        },
     };
-    use super::{SignUpForm, signup};
+
+    fn random_valid_signup_form() -> SignUpForm {
+        SignUpForm {
+            username: random_valid_username(),
+            about: None,
+            email: random_valid_email(),
+            password: random_ascii_string(6..32),
+        }
+    }
+
+    fn random_invalid_signup_form() -> SignUpForm {
+        SignUpForm {
+            username: random_ascii_string(1..64),
+            about: None,
+            email: random_ascii_string(1..64),
+            password: random_ascii_string(1..64),
+        }
+    }
 
     #[actix_web::test]
     async fn signup_works() {
@@ -195,17 +216,12 @@ mod tests {
 
         let pool = Data::new(
             configure_db()
-            .await
-            .expect("Failed to configure test database")
+                .await
+                .expect("Failed to configure test database"),
         );
-        let form = Json(SignUpForm {
-            username: "username".to_string(),
-            about: None,
-            email: "example@email.com".to_string(),
-            password: "password".to_string(),
-        });
+        let form = Json(random_valid_signup_form());
         let resp = signup(pool, form).await;
-        assert_eq!(resp.unwrap().status(), actix_web::http::StatusCode::CREATED);
+        assert_eq!(resp.unwrap().status(), StatusCode::CREATED);
     }
 
     #[actix_web::test]
@@ -214,16 +230,11 @@ mod tests {
 
         let pool = Data::new(
             configure_db()
-            .await
-            .expect("Failed to configure test database")
+                .await
+                .expect("Failed to configure test database"),
         );
-        let form = Json(SignUpForm {
-            username: "USERNAME".to_string(),
-            about: None,
-            email: "example@email.com".to_string(),
-            password: "password".to_string(),
-        });
+        let form = Json(random_invalid_signup_form());
         let resp = signup(pool, form).await;
-        assert_eq!(resp.err().unwrap().status_code(), actix_web::http::StatusCode::BAD_REQUEST);
+        assert_eq!(resp.err().unwrap().status_code(), StatusCode::BAD_REQUEST);
     }
 }

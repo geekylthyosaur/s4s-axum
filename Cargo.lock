@@ -274,6 +274,7 @@ dependencies = [
  "actix-web",
  "chrono",
  "dotenv",
+ "fake",
  "once_cell",
  "secrecy",
  "serde",
@@ -517,6 +518,15 @@ name = "event-listener"
 version = "2.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77f3309417938f28bf8228fcff79a4a37103981e3e186d2ccd19c74b38f4eb71"
+
+[[package]]
+name = "fake"
+version = "2.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21a8531dd3a64fd1cfbe92fad4160bc2060489c6195fe847e045e5788f710bae"
+dependencies = [
+ "rand",
+]
 
 [[package]]
 name = "firestorm"

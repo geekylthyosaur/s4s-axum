@@ -1,19 +1,12 @@
-use actix_web::{
-    web, 
-    App, 
-    HttpServer
-};
+use actix_web::{web, App, HttpServer};
 
-use config::{
-    configure_app, 
-    configure_db, 
-};
+use config::{configure_app, configure_db};
 
+mod config;
+mod health_check;
+mod telemetry;
 mod user;
 mod utils;
-mod config;
-mod telemetry;
-mod health_check;
 
 #[actix_web::main]
 async fn actix_run() -> std::io::Result<()> {
@@ -22,14 +15,10 @@ async fn actix_run() -> std::io::Result<()> {
         Err(e) => panic!("{}", e),
     };
 
-    HttpServer::new(move || {
-        App::new()
-            .app_data(pool.clone())
-            .configure(configure_app)
-    })
-    .bind(("127.0.0.1", 8000))?
-    .run()
-    .await
+    HttpServer::new(move || App::new().app_data(pool.clone()).configure(configure_app))
+        .bind(("127.0.0.1", 8000))?
+        .run()
+        .await
 }
 
 fn main() {
