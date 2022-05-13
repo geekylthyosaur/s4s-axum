@@ -182,22 +182,14 @@ mod tests {
         ResponseError,
         web::{Data, Json},
     };
-    use once_cell::sync::Lazy;
 
-    use crate::{
-        config::configure_db,
-        telemetry,
-    };
+    use crate::config::configure_db;
+    use crate::test_utils::lazy_init_subscriber;
     use super::{SignUpForm, signup};
-
-    static TRACING: Lazy<()> = Lazy::new(|| {
-        let subscriber = telemetry::get_subscriber("test".into(), "debug".into());
-        telemetry::init_subscriber(subscriber);
-    });
 
     #[actix_web::test]
     async fn signup_works() {
-        Lazy::force(&TRACING);
+        lazy_init_subscriber();
 
         let pool = configure_db().unwrap();
         let pool = Data::new(pool);
@@ -214,7 +206,7 @@ mod tests {
 
     #[actix_web::test]
     async fn signup_fails_on_username_validation_error() {
-        Lazy::force(&TRACING);
+        lazy_init_subscriber();
 
         let pool = configure_db().unwrap();
         let pool = Data::new(pool);
