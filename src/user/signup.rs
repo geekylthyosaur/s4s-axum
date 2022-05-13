@@ -1,12 +1,12 @@
 use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
 use validator::{Validate, ValidationErrors};
 use sqlx::{PgPool, Postgres, Transaction};
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
 use crate::user::model::NewUser;
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct SignUpForm {
     pub username: String,
     pub about: Option<String>,
@@ -174,4 +174,58 @@ async fn save_credentials(
     .await?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use actix_web::{
+        ResponseError,
+        web::{Data, Json},
+    };
+    use once_cell::sync::Lazy;
+
+    use crate::{
+        config::configure_db,
+        telemetry,
+    };
+    use super::{SignUpForm, signup};
+
+    static TRACING: Lazy<()> = Lazy::new(|| {
+        let subscriber = telemetry::get_subscriber("test".into(), "debug".into());
+        telemetry::init_subscriber(subscriber);
+    });
+
+    #[actix_web::test]
+    async fn signup_works() {
+        Lazy::force(&TRACING);
+
+        let pool = configure_db().unwrap();
+        let pool = Data::new(pool);
+        let form_data = SignUpForm {
+            username: "usasdername".to_string(),
+            about: None,
+            email: "exampasdle@email.com".to_string(),
+            password: "password".to_string(),
+        };
+        let form = Json(form_data);
+        let resp = signup(pool, form).await;
+        assert_eq!(resp.unwrap().status(), actix_web::http::StatusCode::CREATED);
+    }
+
+    #[actix_web::test]
+    async fn signup_fails_on_username_validation_error() {
+        Lazy::force(&TRACING);
+
+        let pool = configure_db().unwrap();
+        let pool = Data::new(pool);
+        let form_data = SignUpForm {
+            username: "ASD".to_string(),
+            about: None,
+            email: "exampasdle@email.com".to_string(),
+            password: "password".to_string(),
+        };
+        let form = Json(form_data);
+        let resp = signup(pool, form).await;
+        assert_eq!(resp.err().unwrap().status_code(), actix_web::http::StatusCode::BAD_REQUEST);
+    }
 }
