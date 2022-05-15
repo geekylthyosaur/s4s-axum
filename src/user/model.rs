@@ -1,5 +1,6 @@
+use argon2::{password_hash::PasswordHasher, Argon2};
+use secrecy::{ExposeSecret, Secret};
 use validator::{Validate, ValidationError};
-use secrecy::Secret;
 
 #[derive(Validate)]
 pub struct NewUser {
@@ -12,9 +13,7 @@ pub struct NewUser {
     )]
     pub username: String,
     pub about: Option<String>,
-    #[validate(email(message = "Isn't valid email."))]
-    pub email: String,
-    pub password: Secret<String>,
+    pub credentials: Credentials,
 }
 
 fn is_ascii_alphabetic_and_lowercase(username: &str) -> Result<(), ValidationError> {
@@ -29,17 +28,38 @@ fn is_ascii_alphabetic_and_lowercase(username: &str) -> Result<(), ValidationErr
 }
 
 impl NewUser {
-    pub fn new(username: String, about: Option<String>, email: String, password: Secret<String>) -> Self {
+    pub fn new(username: String, about: Option<String>, credentials: Credentials) -> Self {
         NewUser {
             username,
             about,
-            email,
-            password,
+            credentials,
         }
     }
 }
 
+#[derive(Validate)]
 pub struct Credentials {
+    #[validate(email(message = "Isn't valid email."))]
     pub email: String,
-    pub password: Secret<String>,
+    pub pwd_hash: Secret<String>,
+    pub salt: String,
+}
+
+impl Credentials {
+    pub fn new(
+        email: String,
+        password: Secret<String>,
+        salt: String,
+    ) -> Result<Self, argon2::password_hash::Error> {
+        let pwd_hash = Secret::new(
+            Argon2::default()
+                .hash_password(password.expose_secret().as_bytes(), &salt)?
+                .to_string(),
+        );
+        Ok(Self {
+            email,
+            pwd_hash,
+            salt,
+        })
+    }
 }

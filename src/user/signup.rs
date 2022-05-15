@@ -1,18 +1,26 @@
-use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
+use actix_web::{
+    http::StatusCode,
+    web::{Data, Json},
+    HttpResponse, ResponseError,
+};
+use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
+    Argon2,
+};
+use secrecy::{ExposeSecret, Secret};
 use serde::Deserialize;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
-use secrecy::{Secret, ExposeSecret};
 
-use crate::user::model::NewUser;
+use super::model::{Credentials, NewUser};
 
 #[derive(Deserialize)]
 pub struct SignUpForm {
     pub username: String,
     pub about: Option<String>,
     pub email: String,
-    pub password: Secret<String>,
+    pub password: String,
 }
 
 pub enum SignUpError {
@@ -27,10 +35,18 @@ pub enum UniqueField {
 }
 
 impl TryFrom<SignUpForm> for NewUser {
-    type Error = ValidationErrors;
+    type Error = SignUpError;
 
     fn try_from(form: SignUpForm) -> Result<Self, Self::Error> {
-        let new_user = Self::new(form.username, form.about, form.email, form.password);
+        let salt = SaltString::generate(&mut OsRng).to_string();
+        let pwd_hash = Secret::new(
+            Argon2::default()
+                .hash_password(form.password.as_bytes(), &salt)?
+                .to_string(),
+        );
+        let credentials = Credentials::new(form.email, pwd_hash, salt)?;
+        credentials.validate()?;
+        let new_user = Self::new(form.username, form.about, credentials);
         new_user.validate()?;
         Ok(new_user)
     }
@@ -107,6 +123,14 @@ impl std::error::Error for SignUpError {
     }
 }
 
+impl From<argon2::password_hash::Error> for SignUpError {
+    fn from(e: argon2::password_hash::Error) -> Self {
+        match e {
+            _ => Self::Unexpected(Box::new(e)),
+        }
+    }
+}
+
 #[tracing::instrument(
     name = "Adding a new user",
     skip(form, pool),
@@ -116,8 +140,8 @@ impl std::error::Error for SignUpError {
     )
 )]
 pub async fn signup(
-    pool: web::Data<PgPool>,
-    form: web::Json<SignUpForm>,
+    pool: Data<PgPool>,
+    form: Json<SignUpForm>,
 ) -> Result<HttpResponse, SignUpError> {
     let new_user = form.into_inner().try_into()?;
     let mut transaction = pool.begin().await?;
@@ -161,15 +185,15 @@ async fn save_credentials(
     user: &NewUser,
     user_uuid: Uuid,
 ) -> Result<(), sqlx::Error> {
-    // TODO: password auth https://www.lpalmieri.com/posts/password-authentication-in-rust/
     sqlx::query!(
         r#"
-            INSERT INTO credentials (owner_uuid, email, pwd_hash)
-                VALUES ($1, $2, $3)
+            INSERT INTO credentials (owner_uuid, email, pwd_hash, salt)
+                VALUES ($1, $2, $3, $4)
         "#,
         user_uuid,
-        user.email,
-        user.password.expose_secret()
+        user.credentials.email,
+        user.credentials.pwd_hash.expose_secret().to_string(),
+        user.credentials.salt,
     )
     .execute(transaction)
     .await?;
@@ -184,7 +208,6 @@ mod tests {
         web::{Data, Json},
         ResponseError,
     };
-    use secrecy::Secret;
 
     use super::{signup, SignUpForm};
     use crate::{
@@ -199,7 +222,7 @@ mod tests {
             username: random_valid_username(),
             about: None,
             email: random_valid_email(),
-            password: Secret::new(random_ascii_string(6..32)),
+            password: random_ascii_string(6..32),
         }
     }
 
@@ -208,7 +231,7 @@ mod tests {
             username: random_ascii_string(1..64),
             about: None,
             email: random_ascii_string(1..64),
-            password: Secret::new(random_ascii_string(1..64)),
+            password: random_ascii_string(1..64),
         }
     }
 
