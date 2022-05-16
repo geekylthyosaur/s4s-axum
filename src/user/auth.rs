@@ -1,3 +1,4 @@
+use actix_web::{http::StatusCode, ResponseError};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -36,6 +37,15 @@ impl std::error::Error for AuthError {
     }
 }
 
+impl ResponseError for AuthError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::InvalidCredentials => StatusCode::UNAUTHORIZED,
+            Self::Unexpected(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
 impl From<argon2::Error> for AuthError {
     fn from(e: argon2::Error) -> Self {
         match e {
@@ -66,6 +76,7 @@ impl From<sqlx::Error> for AuthError {
     }
 }
 
+#[tracing::instrument(name = "Validation of user credentials", skip(pool, password))]
 pub async fn validate_credentials(
     pool: &PgPool,
     email: String,
@@ -89,6 +100,7 @@ pub async fn validate_credentials(
     Ok(row.owner_uuid)
 }
 
+#[tracing::instrument(name = "Password hash verification", skip(expected, candidate))]
 fn verify_password_hash(
     expected: Secret<String>,
     candidate: Secret<String>,
