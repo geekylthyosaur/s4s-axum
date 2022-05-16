@@ -28,15 +28,6 @@ impl std::fmt::Debug for AuthError {
     }
 }
 
-impl std::error::Error for AuthError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Unexpected(e) => Some(&**e),
-            _ => None,
-        }
-    }
-}
-
 impl ResponseError for AuthError {
     fn status_code(&self) -> StatusCode {
         match self {

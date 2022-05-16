@@ -114,15 +114,6 @@ impl std::fmt::Debug for SignUpError {
     }
 }
 
-impl std::error::Error for SignUpError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Unexpected(e) => Some(&**e),
-            _ => None,
-        }
-    }
-}
-
 impl From<argon2::password_hash::Error> for SignUpError {
     fn from(e: argon2::password_hash::Error) -> Self {
         match e {
