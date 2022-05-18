@@ -3,10 +3,7 @@ use actix_web::{
     web::{Data, Json},
     HttpResponse, ResponseError,
 };
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
-    Argon2,
-};
+use argon2::password_hash::{rand_core::OsRng, SaltString};
 use secrecy::{ExposeSecret, Secret};
 use serde::Deserialize;
 use sqlx::{PgPool, Postgres, Transaction};
@@ -38,13 +35,7 @@ impl TryFrom<SignUpForm> for NewUser {
     type Error = SignUpError;
 
     fn try_from(form: SignUpForm) -> Result<Self, Self::Error> {
-        let salt = SaltString::generate(&mut OsRng).to_string();
-        let pwd_hash = Secret::new(
-            Argon2::default()
-                .hash_password(form.password.as_bytes(), &salt)?
-                .to_string(),
-        );
-        let credentials = Credentials::new(form.email, pwd_hash, salt)?;
+        let credentials = Credentials::new(form.email, Secret::new(form.password));
         credentials.validate()?;
         let new_user = Self::new(form.username, form.about, credentials);
         new_user.validate()?;
@@ -176,6 +167,8 @@ async fn save_credentials(
     user: &NewUser,
     user_uuid: Uuid,
 ) -> Result<(), sqlx::Error> {
+    let salt = SaltString::generate(&mut OsRng).to_string();
+    let pwd_hash = user.credentials.clone().calc_pwd_hash(&salt).unwrap(); // TODO
     sqlx::query!(
         r#"
             INSERT INTO credentials (owner_uuid, email, pwd_hash, salt)
@@ -183,8 +176,8 @@ async fn save_credentials(
         "#,
         user_uuid,
         user.credentials.email,
-        user.credentials.pwd_hash.expose_secret().to_string(),
-        user.credentials.salt,
+        pwd_hash.expose_secret(),
+        salt,
     )
     .execute(transaction)
     .await?;

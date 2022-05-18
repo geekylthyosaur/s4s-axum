@@ -37,29 +37,26 @@ impl NewUser {
     }
 }
 
-#[derive(Validate)]
+#[derive(Validate, Clone)]
 pub struct Credentials {
     #[validate(email(message = "Isn't valid email."))]
     pub email: String,
-    pub pwd_hash: Secret<String>,
-    pub salt: String,
+    pub password: Secret<String>,
 }
 
 impl Credentials {
-    pub fn new(
-        email: String,
-        password: Secret<String>,
-        salt: String,
-    ) -> Result<Self, argon2::password_hash::Error> {
-        let pwd_hash = Secret::new(
+    pub fn new(email: String, password: Secret<String>) -> Self {
+        Self { email, password }
+    }
+
+    pub fn calc_pwd_hash(
+        self,
+        salt: &String,
+    ) -> Result<Secret<String>, argon2::password_hash::Error> {
+        Ok(Secret::new(
             Argon2::default()
-                .hash_password(password.expose_secret().as_bytes(), &salt)?
+                .hash_password(self.password.expose_secret().as_bytes(), &salt)?
                 .to_string(),
-        );
-        Ok(Self {
-            email,
-            pwd_hash,
-            salt,
-        })
+        ))
     }
 }

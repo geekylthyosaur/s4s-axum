@@ -67,11 +67,10 @@ impl From<sqlx::Error> for AuthError {
     }
 }
 
-#[tracing::instrument(name = "Validation of user credentials", skip(pool, password))]
+#[tracing::instrument(name = "Validation of user credentials", skip(pool, credentials))]
 pub async fn validate_credentials(
     pool: &PgPool,
-    email: String,
-    password: Secret<String>,
+    credentials: Credentials,
 ) -> Result<Uuid, AuthError> {
     let row = sqlx::query!(
         r#"
@@ -79,14 +78,14 @@ pub async fn validate_credentials(
         FROM credentials
         WHERE email=$1
     "#,
-        email
+        credentials.email
     )
     .fetch_one(pool)
     .await?;
-    let credentials = Credentials::new(email, password, row.salt)?;
-    let expected_password_hash = Secret::new(row.pwd_hash);
+    let candidate = credentials.calc_pwd_hash(&row.salt)?;
+    let expected = Secret::new(row.pwd_hash);
 
-    verify_password_hash(expected_password_hash, credentials.pwd_hash)?;
+    verify_password_hash(expected, candidate)?;
 
     Ok(row.owner_uuid)
 }
