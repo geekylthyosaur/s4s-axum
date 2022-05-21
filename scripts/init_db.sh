@@ -22,3 +22,5 @@ sleep 5
 sqlx database create
 sqlx migrate run
 
+DB_NAME=blog_test_db sqlx database create
+DB_NAME=blog_test_db sqlx migrate run
