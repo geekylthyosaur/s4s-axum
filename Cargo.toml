@@ -7,3 +7,4 @@ authors = ["geekylthyosaur <geekylthyosaur@gmail.com>"]
 [dependencies]
 axum = { version = "0.6.12", default-features = false, features = ["http1", "tokio"] }
 tokio = { version = "1.27.0", default-features = false, features = ["macros", "rt-multi-thread"] }
+tracing-subscriber = { version = "0.3.16", default-features = false, features = ["fmt", "ansi"] }
