@@ -1,21 +1,18 @@
-use axum::{routing::get, Router};
+#![warn(clippy::pedantic)]
+
 use std::net::SocketAddr;
 
-use s4s::telemetry::Telemetry;
+use s4s::{config::routes::routes, telemetry::Telemetry};
 
 #[tokio::main]
 async fn main() {
     Telemetry::initialize();
 
-    let app = Router::new().route("/", get(index));
+    let app = routes();
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
-}
-
-async fn index() -> &'static str {
-    "Hello, World!"
 }
