@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    depends_on:
+      - storage
+    ports:
+      - 3000:3000
+
+  storage:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: s4s

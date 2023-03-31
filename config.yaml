@@ -1,0 +1,9 @@
+app:
+  host: "0.0.0.0"
+  port: 3000
+storage:
+  host: "storage"
+  port: 5432
+  username: "postgres"
+  password: "password"
+  database_name: "s4s"

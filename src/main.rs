@@ -1,6 +1,6 @@
 #![warn(clippy::pedantic)]
 
-use std::net::SocketAddr;
+use std::{net::SocketAddr, time::Duration};
 
 use s4s::{
     config::{routes::routes, Config},
@@ -12,9 +12,10 @@ use sqlx::postgres::PgPoolOptions;
 async fn main() {
     Telemetry::initialize();
 
-    let config = Config::new();
+    let config = Config::new().expect("Failed to read configuration!");
 
     let pool = PgPoolOptions::new()
+        .acquire_timeout(Duration::from_secs(5))
         .connect(&config.storage.connection_string())
         .await
         .expect("Failed to connect to database!");
@@ -26,7 +27,8 @@ async fn main() {
 
     let app = routes().with_state(pool);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(config.app.address().expect("Failed to parse address!"));
+
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await

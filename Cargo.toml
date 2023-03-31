@@ -7,6 +7,7 @@ authors = ["geekylthyosaur <geekylthyosaur@gmail.com>"]
 [dependencies]
 axum = { version = "0.6.12", default-features = false, features = ["http1", "tokio", "json", "headers"] }
 chrono = { version = "0.4.24", default-features = false, features = ["clock", "serde"] }
+config = { version = "0.13.3", default-features = false, features = ["yaml"] }
 jsonwebtoken = { version = "8.3.0", default-features = false }
 once_cell = { version = "1.17.1", default-features = false }
 serde = { version = "1.0.159", default-features = false }

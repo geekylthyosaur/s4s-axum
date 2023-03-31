@@ -1,7 +1,19 @@
-pub struct StorageConfig;
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+pub struct StorageConfig {
+    host: String,
+    port: u16,
+    username: String,
+    password: String,
+    database_name: String,
+}
 
 impl StorageConfig {
     pub fn connection_string(&self) -> String {
-        "postgres://postgres:password@localhost:5432/s4s".into()
+        format!(
+            "postgres://{}:{}@{}:{}/{}",
+            self.username, self.password, self.host, self.port, self.database_name
+        )
     }
 }
