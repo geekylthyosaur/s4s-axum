@@ -1,10 +1,12 @@
 use axum::{
     async_trait,
-    extract::FromRequestParts,
+    extract::{rejection::FormRejection, Form, FromRequest, FromRequestParts},
     headers::{authorization::Bearer, Authorization},
-    http::request::Parts,
+    http::{request::Parts, Request},
     Extension, RequestPartsExt, TypedHeader,
 };
+use serde::de::DeserializeOwned;
+use validator::Validate;
 
 use crate::{
     auth::jwt::Claims,
@@ -35,5 +37,26 @@ where
             .map_err(|e| Error::from(e))?
             .ok_or_else(|| Error::WrongCredentials)?;
         Ok(user)
+    }
+}
+
+pub struct Validated<T>(pub T);
+
+#[async_trait]
+impl<T, S, B> FromRequest<S, B> for Validated<T>
+where
+    T: DeserializeOwned + Validate,
+    S: Send + Sync,
+    Form<T>: FromRequest<S, B, Rejection = FormRejection>,
+    B: Send + 'static,
+{
+    type Rejection = ApiError;
+
+    async fn from_request(req: Request<B>, state: &S) -> Result<Self, Self::Rejection> {
+        let Form(form) = Form::<T>::from_request(req, state)
+            .await
+            .map_err(|e| Error::from(e))?;
+        form.validate().map_err(|e| Error::from(e))?;
+        Ok(Validated(form))
     }
 }

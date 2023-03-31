@@ -9,6 +9,8 @@ pub enum Error {
     #[error(transparent)]
     JwtError(#[from] jsonwebtoken::errors::Error),
     #[error(transparent)]
+    AxumFormError(#[from] axum::extract::rejection::FormRejection),
+    #[error(transparent)]
     AxumExtensionError(#[from] axum::extract::rejection::ExtensionRejection),
     #[error(transparent)]
     AxumTypedHeaderError(#[from] axum::extract::rejection::TypedHeaderRejection),

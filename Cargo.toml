@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["geekylthyosaur <geekylthyosaur@gmail.com>"]
 
 [dependencies]
-axum = { version = "0.6.12", default-features = false, features = ["http1", "tokio", "json", "headers"] }
+axum = { version = "0.6.12", default-features = false, features = ["http1", "tokio", "json", "headers", "form"] }
 chrono = { version = "0.4.24", default-features = false, features = ["clock", "serde"] }
 config = { version = "0.13.3", default-features = false, features = ["yaml"] }
 jsonwebtoken = { version = "8.3.0", default-features = false }

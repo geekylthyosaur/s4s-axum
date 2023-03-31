@@ -1,6 +1,7 @@
 #![warn(clippy::pedantic)]
 
 mod auth;
+mod service;
 pub mod config;
 mod dto;
 mod error;

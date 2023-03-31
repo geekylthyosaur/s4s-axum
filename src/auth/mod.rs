@@ -1,4 +1,5 @@
 pub mod jwt;
+pub mod password;
 
 use axum::{
     async_trait,

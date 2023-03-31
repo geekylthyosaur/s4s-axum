@@ -1,20 +1,34 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
+use validator::{Validate, ValidationError};
 
-#[derive(Serialize)]
+#[derive(Serialize, Validate)]
 pub struct User {
     #[serde(skip_serializing)]
-    id: Uuid,
-    username: String,
-    first_name: Option<String>,
-    last_name: Option<String>,
-    email: String,
+    pub id: Uuid,
+    #[validate(length(min = 4, max = 16), custom = "is_lowercase_alphabetic")]
+    pub username: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    #[validate(email)]
+    pub email: String,
     #[serde(skip_serializing)]
-    password: String,
-    age: u8,
-    about: Option<String>,
-    verified: bool,
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    pub pwd_hash: String,
+    #[validate(range(min = 0, max = 128))]
+    pub age: Option<i32>,
+    #[validate(length(max = 512))]
+    pub about: Option<String>,
+    pub verified: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+fn is_lowercase_alphabetic(s: &str) -> Result<(), ValidationError> {
+    s.chars()
+        .all(|c| c.is_alphabetic() && c.is_lowercase())
+        .then(|| ())
+        .ok_or(ValidationError::new(
+            "Only lowercase and alphabetic allowed",
+        ))
 }
