@@ -1,4 +1,4 @@
-mod jwt;
+pub mod jwt;
 
 use axum::{
     async_trait,

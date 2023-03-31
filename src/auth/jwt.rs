@@ -29,6 +29,10 @@ impl Claims {
         }
     }
 
+    pub fn sub(&self) -> Uuid {
+        self.sub
+    }
+
     pub fn sign(self) -> Result<String> {
         Ok(jsonwebtoken::encode(
             &Header::default(),

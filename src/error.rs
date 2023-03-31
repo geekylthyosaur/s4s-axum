@@ -5,7 +5,11 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]
+    SqlxError(#[from] sqlx::Error),
+    #[error(transparent)]
     JwtError(#[from] jsonwebtoken::errors::Error),
+    #[error(transparent)]
+    AxumExtensionError(#[from] axum::extract::rejection::ExtensionRejection),
     #[error(transparent)]
     AxumTypedHeaderError(#[from] axum::extract::rejection::TypedHeaderRejection),
     #[error(transparent)]
