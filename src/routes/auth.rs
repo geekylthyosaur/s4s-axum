@@ -1,25 +1,34 @@
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{extract::State, Json};
 
 use crate::{
-    dto::{LoginForm, SignupForm},
+    auth::jwt,
+    dto::{AuthBody, LoginForm, SignupForm},
     error::ApiResult,
-    extractors::Validated,
-    storage::DbPool, service::AuthService,
+    extractors::ValidatedJson,
+    service::AuthService,
+    storage::DbPool,
 };
 
+#[axum_macros::debug_handler]
 pub async fn signup(
     State(pool): State<DbPool>,
-    Json(Validated(form)): Json<Validated<SignupForm>>,
-) -> ApiResult<StatusCode> {
-    AuthService::signup(&pool, form).await?;
+    ValidatedJson(form): ValidatedJson<SignupForm>,
+) -> ApiResult<Json<AuthBody>> {
+    let id = AuthService::signup(&pool, form).await?;
 
-    Ok(StatusCode::NO_CONTENT)
+    let token = jwt::Claims::new(id).sign()?;
+
+    Ok(Json(AuthBody::new(token)))
 }
 
+#[axum_macros::debug_handler]
 pub async fn login(
     State(pool): State<DbPool>,
-    Json(Validated(form)): Json<Validated<LoginForm>>,
-) -> ApiResult<StatusCode> {
-    AuthService::login(&pool, form).await?;
-    Ok(StatusCode::NO_CONTENT)
+    ValidatedJson(form): ValidatedJson<LoginForm>,
+) -> ApiResult<Json<AuthBody>> {
+    let id = AuthService::login(&pool, form).await?;
+
+    let token = jwt::Claims::new(id).sign()?;
+
+    Ok(Json(AuthBody::new(token)))
 }

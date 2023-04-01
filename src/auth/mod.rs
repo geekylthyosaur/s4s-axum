@@ -8,17 +8,11 @@ use axum::{
     http::request::Parts,
     RequestPartsExt, TypedHeader,
 };
-use jsonwebtoken::{decode, DecodingKey, EncodingKey, Validation};
-use once_cell::sync::Lazy;
+use jsonwebtoken::{decode, DecodingKey, Validation};
 
-use crate::error::{ApiError, Error};
+use crate::{error::{ApiError, Error}, config::env::JWT_SECRET};
 
 use self::jwt::Claims;
-
-static KEYS: Lazy<Keys> = Lazy::new(|| {
-    let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
-    Keys::new(secret.as_bytes())
-});
 
 #[async_trait]
 impl<S> FromRequestParts<S> for Claims
@@ -31,24 +25,10 @@ where
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
-            .map_err(|e| Error::from(e))?;
-        let token_data = decode::<Claims>(bearer.token(), &KEYS.decoding, &Validation::default())
-            .map_err(|e| Error::from(e))?;
+            .map_err(Error::from)?;
+        let token_data = decode::<Claims>(bearer.token(), &DecodingKey::from_secret(JWT_SECRET.as_bytes()), &Validation::default())
+            .map_err(Error::from)?;
 
         Ok(token_data.claims)
-    }
-}
-
-struct Keys {
-    encoding: EncodingKey,
-    decoding: DecodingKey,
-}
-
-impl Keys {
-    fn new(secret: &[u8]) -> Self {
-        Self {
-            encoding: EncodingKey::from_secret(secret),
-            decoding: DecodingKey::from_secret(secret),
-        }
     }
 }

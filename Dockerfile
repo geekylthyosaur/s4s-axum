@@ -27,4 +27,5 @@ EXPOSE 3000
 
 COPY --from=builder /app/target/release/s4s s4s
 COPY config.yaml config.yaml
+COPY .env .env
 ENTRYPOINT ["./s4s"]

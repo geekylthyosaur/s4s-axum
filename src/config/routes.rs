@@ -12,6 +12,6 @@ pub fn routes() -> Router<DbPool> {
     Router::new()
         .route("/", get(index))
         .route("/me", get(user::me))
-        .route("signup", post(auth::signup))
-        .route("login", post(auth::login))
+        .route("/signup", post(auth::signup))
+        .route("/login", post(auth::login))
 }

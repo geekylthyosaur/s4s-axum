@@ -9,7 +9,7 @@ pub enum Error {
     #[error(transparent)]
     JwtError(#[from] jsonwebtoken::errors::Error),
     #[error(transparent)]
-    AxumFormError(#[from] axum::extract::rejection::FormRejection),
+    AxumJsonError(#[from] axum::extract::rejection::JsonRejection),
     #[error(transparent)]
     AxumExtensionError(#[from] axum::extract::rejection::ExtensionRejection),
     #[error(transparent)]
@@ -28,6 +28,7 @@ impl From<Error> for ApiError {
     fn from(err: Error) -> Self {
         let status = match err {
             Error::ValidationError(_) => StatusCode::BAD_REQUEST,
+            Error::AxumJsonError(_) => StatusCode::BAD_REQUEST,
             Error::WrongCredentials => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         };

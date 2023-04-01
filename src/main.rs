@@ -1,6 +1,6 @@
 #![warn(clippy::pedantic)]
 
-use std::{net::SocketAddr, time::Duration};
+use std::time::Duration;
 
 use s4s::{
     config::{routes::routes, Config},
@@ -11,6 +11,8 @@ use sqlx::postgres::PgPoolOptions;
 #[tokio::main]
 async fn main() {
     Telemetry::initialize();
+
+    dotenvy::dotenv().expect("Failed to load .env!");
 
     let config = Config::new().expect("Failed to read configuration!");
 
@@ -27,9 +29,7 @@ async fn main() {
 
     let app = routes().with_state(pool);
 
-    let addr = SocketAddr::from(config.app.address().expect("Failed to parse address!"));
-
-    axum::Server::bind(&addr)
+    axum::Server::bind(&config.app.address().expect("Failed to parse address!"))
         .serve(app.into_make_service())
         .await
         .unwrap();

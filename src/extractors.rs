@@ -1,11 +1,10 @@
 use axum::{
     async_trait,
-    extract::{rejection::FormRejection, Form, FromRequest, FromRequestParts},
+    extract::{FromRequest, FromRequestParts, FromRef, rejection::{FormRejection, JsonRejection}},
     headers::{authorization::Bearer, Authorization},
     http::{request::Parts, Request},
-    Extension, RequestPartsExt, TypedHeader,
+    RequestPartsExt, TypedHeader, RequestExt, Json,
 };
-use serde::de::DeserializeOwned;
 use validator::Validate;
 
 use crate::{
@@ -18,45 +17,43 @@ use crate::{
 #[async_trait]
 impl<S> FromRequestParts<S> for User
 where
+    DbPool: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = ApiError;
 
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
-            .map_err(|err| Error::from(err))?;
-        let Extension(pool) = parts
-            .extract::<Extension<DbPool>>()
-            .await
-            .map_err(|err| Error::from(err))?;
+            .map_err(Error::from)?;
+        let pool = DbPool::from_ref(state);
         let claims = Claims::verify(bearer.token())?;
         let user = user::get_by_id(&pool, claims.sub())
             .await
-            .map_err(|e| Error::from(e))?
-            .ok_or_else(|| Error::WrongCredentials)?;
+            .map_err(Error::from)?;
         Ok(user)
     }
 }
 
-pub struct Validated<T>(pub T);
+pub struct ValidatedJson<T>(pub T);
 
 #[async_trait]
-impl<T, S, B> FromRequest<S, B> for Validated<T>
+impl<S, B, T> FromRequest<S, B> for ValidatedJson<T>
 where
-    T: DeserializeOwned + Validate,
-    S: Send + Sync,
-    Form<T>: FromRequest<S, B, Rejection = FormRejection>,
     B: Send + 'static,
+    S: Send + Sync,
+    T: Validate + 'static,
+    Json<T>: FromRequest<(), B, Rejection = JsonRejection>,
 {
     type Rejection = ApiError;
 
-    async fn from_request(req: Request<B>, state: &S) -> Result<Self, Self::Rejection> {
-        let Form(form) = Form::<T>::from_request(req, state)
+    async fn from_request(req: Request<B>, _state: &S) -> Result<Self, Self::Rejection> {
+        let Json(form) = req
+            .extract::<Json<T>, _>()
             .await
-            .map_err(|e| Error::from(e))?;
-        form.validate().map_err(|e| Error::from(e))?;
-        Ok(Validated(form))
+            .map_err(Error::from)?;
+        form.validate().map_err(Error::from)?;
+        Ok(Self(form))
     }
 }

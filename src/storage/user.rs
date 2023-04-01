@@ -5,16 +5,52 @@ use crate::models::user::User;
 
 use super::DbPool;
 
-pub async fn get_by_id(pool: &DbPool, id: Uuid) -> SqlxResult<Option<User>> {
-    todo!()
+pub async fn get_by_id(pool: &DbPool, id: Uuid) -> SqlxResult<User> {
+    let user = sqlx::query_as!(
+        User,
+        r#"
+            SELECT *
+            FROM users
+            WHERE users.id = $1;
+        "#,
+        id
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(user)
 }
 
-pub async fn get_by_email(pool: &DbPool, email: String) -> SqlxResult<Option<User>> {
-    todo!()
+pub async fn get_by_email(pool: &DbPool, email: String) -> SqlxResult<User> {
+    let user = sqlx::query_as!(
+        User,
+        r#"
+            SELECT *
+            FROM users
+            WHERE users.email = $1;
+        "#,
+        email
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(user)
 }
 
-pub async fn get_by_username(pool: &DbPool, username: String) -> SqlxResult<Option<User>> {
-    todo!()
+pub async fn get_by_username(pool: &DbPool, username: String) -> SqlxResult<User> {
+    let user = sqlx::query_as!(
+        User,
+        r#"
+            SELECT *
+            FROM users
+            WHERE users.username = $1;
+        "#,
+        username
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(user)
 }
 
 pub async fn create(pool: &DbPool, user: User) -> SqlxResult<()> {
