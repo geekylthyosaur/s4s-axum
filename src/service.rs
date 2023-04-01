@@ -1,3 +1,4 @@
+use tracing::instrument;
 use uuid::Uuid;
 
 use crate::{
@@ -11,6 +12,7 @@ use crate::{
 pub struct Auth;
 
 impl Auth {
+    #[instrument(skip(pool))]
     pub async fn signup(pool: &DbPool, form: SignupForm) -> Result<Uuid> {
         let id = Uuid::new_v4();
         let pwd_hash = hash_password(&form.password);
@@ -32,6 +34,7 @@ impl Auth {
         Ok(id)
     }
 
+    #[instrument(skip(pool))]
     pub async fn login(pool: &DbPool, form: LoginForm) -> Result<Uuid> {
         let user = user::get_by_username(pool, form.username).await?;
 

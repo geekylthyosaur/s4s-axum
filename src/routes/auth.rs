@@ -1,4 +1,5 @@
 use axum::{extract::State, Json};
+use tracing::instrument;
 
 use crate::{
     auth::jwt,
@@ -9,6 +10,7 @@ use crate::{
     storage::DbPool,
 };
 
+#[instrument(skip(pool))]
 pub async fn signup(
     State(pool): State<DbPool>,
     ValidatedJson(form): ValidatedJson<SignupForm>,
@@ -20,6 +22,7 @@ pub async fn signup(
     Ok(Json(AuthBody::new(token)))
 }
 
+#[instrument(skip(pool))]
 pub async fn login(
     State(pool): State<DbPool>,
     ValidatedJson(form): ValidatedJson<LoginForm>,

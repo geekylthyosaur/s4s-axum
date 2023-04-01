@@ -3,6 +3,7 @@ use axum::{
     http::StatusCode,
     Json,
 };
+use tracing::instrument;
 
 use crate::{
     error::{ApiResult, Error},
@@ -11,16 +12,19 @@ use crate::{
     storage::{user, DbPool},
 };
 
+#[instrument]
 pub async fn me(user: ApiResult<LoggedInUser>) -> ApiResult<Json<User>> {
     user.map(|LoggedInUser(u)| Json(u))
 }
 
+#[instrument(skip(pool))]
 pub async fn get_all(State(pool): State<DbPool>) -> ApiResult<Json<Vec<User>>> {
     let users = user::get_all(&pool).await.map_err(Error::from)?;
 
     Ok(Json(users))
 }
 
+#[instrument(skip(pool))]
 pub async fn get_by_username(
     State(pool): State<DbPool>,
     Path(username): Path<String>,
@@ -32,6 +36,7 @@ pub async fn get_by_username(
     Ok(Json(user))
 }
 
+#[instrument(skip(pool))]
 pub async fn delete(
     State(pool): State<DbPool>,
     id: ApiResult<LoggedInUserId>,

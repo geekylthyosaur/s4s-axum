@@ -15,8 +15,11 @@ use crate::{
     storage::{user, DbPool},
 };
 
+#[derive(Debug)]
 pub struct LoggedInUser(pub User);
+#[derive(Debug)]
 pub struct LoggedInUserId(pub Uuid);
+#[derive(Debug)]
 pub struct ValidatedJson<T>(pub T);
 
 #[async_trait]

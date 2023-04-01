@@ -1,10 +1,12 @@
 use sqlx::Result as SqlxResult;
+use tracing::instrument;
 use uuid::Uuid;
 
 use crate::models::user::User;
 
 use super::DbPool;
 
+#[instrument(skip(pool))]
 pub async fn get_all(pool: &DbPool) -> SqlxResult<Vec<User>> {
     let users = sqlx::query_as!(
         User,
@@ -19,6 +21,7 @@ pub async fn get_all(pool: &DbPool) -> SqlxResult<Vec<User>> {
     Ok(users)
 }
 
+#[instrument(skip(pool))]
 pub async fn get_by_id(pool: &DbPool, id: Uuid) -> SqlxResult<User> {
     let user = sqlx::query_as!(
         User,
@@ -35,6 +38,7 @@ pub async fn get_by_id(pool: &DbPool, id: Uuid) -> SqlxResult<User> {
     Ok(user)
 }
 
+#[instrument(skip(pool))]
 pub async fn get_by_email(pool: &DbPool, email: String) -> SqlxResult<User> {
     let user = sqlx::query_as!(
         User,
@@ -51,6 +55,7 @@ pub async fn get_by_email(pool: &DbPool, email: String) -> SqlxResult<User> {
     Ok(user)
 }
 
+#[instrument(skip(pool))]
 pub async fn get_by_username(pool: &DbPool, username: String) -> SqlxResult<User> {
     let user = sqlx::query_as!(
         User,
@@ -67,6 +72,7 @@ pub async fn get_by_username(pool: &DbPool, username: String) -> SqlxResult<User
     Ok(user)
 }
 
+#[instrument(skip(pool))]
 pub async fn create(pool: &DbPool, user: User) -> SqlxResult<()> {
     sqlx::query!(
         r#"
@@ -91,6 +97,7 @@ pub async fn create(pool: &DbPool, user: User) -> SqlxResult<()> {
     Ok(())
 }
 
+#[instrument(skip(pool))]
 pub async fn delete(pool: &DbPool, id: Uuid) -> SqlxResult<()> {
     sqlx::query!(
         r#"
