@@ -10,7 +10,10 @@ use axum::{
 };
 use jsonwebtoken::{decode, DecodingKey, Validation};
 
-use crate::{error::{ApiError, Error}, config::env::JWT_SECRET};
+use crate::{
+    config::env::JWT_SECRET,
+    error::{ApiError, Error},
+};
 
 use self::jwt::Claims;
 
@@ -26,8 +29,12 @@ where
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
             .map_err(Error::from)?;
-        let token_data = decode::<Claims>(bearer.token(), &DecodingKey::from_secret(JWT_SECRET.as_bytes()), &Validation::default())
-            .map_err(Error::from)?;
+        let token_data = decode::<Claims>(
+            bearer.token(),
+            &DecodingKey::from_secret(JWT_SECRET.as_bytes()),
+            &Validation::default(),
+        )
+        .map_err(Error::from)?;
 
         Ok(token_data.claims)
     }

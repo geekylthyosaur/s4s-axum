@@ -5,17 +5,17 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]
-    SqlxError(#[from] sqlx::Error),
+    Sqlx(#[from] sqlx::Error),
     #[error(transparent)]
-    JwtError(#[from] jsonwebtoken::errors::Error),
+    Jwt(#[from] jsonwebtoken::errors::Error),
     #[error(transparent)]
-    AxumJsonError(#[from] axum::extract::rejection::JsonRejection),
+    AxumJson(#[from] axum::extract::rejection::JsonRejection),
     #[error(transparent)]
-    AxumExtensionError(#[from] axum::extract::rejection::ExtensionRejection),
+    AxumExtension(#[from] axum::extract::rejection::ExtensionRejection),
     #[error(transparent)]
-    AxumTypedHeaderError(#[from] axum::extract::rejection::TypedHeaderRejection),
+    AxumTypedHeader(#[from] axum::extract::rejection::TypedHeaderRejection),
     #[error(transparent)]
-    ValidationError(#[from] validator::ValidationErrors),
+    Validation(#[from] validator::ValidationErrors),
     #[error("wrong credentials")]
     WrongCredentials,
 }
@@ -27,8 +27,7 @@ pub type ApiResult<T> = std::result::Result<T, ApiError>;
 impl From<Error> for ApiError {
     fn from(err: Error) -> Self {
         let status = match err {
-            Error::ValidationError(_) => StatusCode::BAD_REQUEST,
-            Error::AxumJsonError(_) => StatusCode::BAD_REQUEST,
+            Error::Validation(_) | Error::AxumJson(_) => StatusCode::BAD_REQUEST,
             Error::WrongCredentials => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         };

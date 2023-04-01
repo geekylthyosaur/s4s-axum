@@ -5,7 +5,7 @@ use validator::Validate;
 
 use crate::validators::is_lowercase_alphabetic;
 
-#[derive(Serialize, Validate)]
+#[derive(Debug, Serialize, Validate)]
 pub struct User {
     #[serde(skip_serializing)]
     pub id: Uuid,

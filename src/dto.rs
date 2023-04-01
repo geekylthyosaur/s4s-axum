@@ -3,7 +3,7 @@ use validator::Validate;
 
 use crate::validators::is_lowercase_alphabetic;
 
-#[derive(Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct SignupForm {
     #[validate(length(min = 4, max = 16), custom = "is_lowercase_alphabetic")]
     pub username: String,
@@ -14,7 +14,7 @@ pub struct SignupForm {
     repeat_password: String,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct LoginForm {
     #[validate(length(min = 4, max = 16), custom = "is_lowercase_alphabetic")]
     pub username: String,

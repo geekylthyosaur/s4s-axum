@@ -1,9 +1,9 @@
 use axum::{
     async_trait,
-    extract::{FromRequest, FromRequestParts, FromRef, rejection::{FormRejection, JsonRejection}},
+    extract::{rejection::JsonRejection, FromRef, FromRequest, FromRequestParts},
     headers::{authorization::Bearer, Authorization},
     http::{request::Parts, Request},
-    RequestPartsExt, TypedHeader, RequestExt, Json,
+    Json, RequestExt, RequestPartsExt, TypedHeader,
 };
 use validator::Validate;
 
@@ -49,10 +49,7 @@ where
     type Rejection = ApiError;
 
     async fn from_request(req: Request<B>, _state: &S) -> Result<Self, Self::Rejection> {
-        let Json(form) = req
-            .extract::<Json<T>, _>()
-            .await
-            .map_err(Error::from)?;
+        let Json(form) = req.extract::<Json<T>, _>().await.map_err(Error::from)?;
         form.validate().map_err(Error::from)?;
         Ok(Self(form))
     }

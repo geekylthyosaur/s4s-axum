@@ -8,9 +8,9 @@ use crate::{
     storage::{user, DbPool},
 };
 
-pub struct AuthService;
+pub struct Auth;
 
-impl AuthService {
+impl Auth {
     pub async fn signup(pool: &DbPool, form: SignupForm) -> Result<Uuid> {
         let id = Uuid::new_v4();
         let pwd_hash = hash_password(&form.password);

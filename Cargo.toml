@@ -5,8 +5,7 @@ edition = "2021"
 authors = ["geekylthyosaur <geekylthyosaur@gmail.com>"]
 
 [dependencies]
-axum = { version = "0.6.12", default-features = false, features = ["http1", "tokio", "json", "headers", "form"] }
-axum-macros = { version = "0.3.7", default-features = false }
+axum = { version = "0.6.12", default-features = false, features = ["http1", "tokio", "json", "headers"] }
 chrono = { version = "0.4.24", default-features = false, features = ["clock", "serde"] }
 config = { version = "0.13.3", default-features = false, features = ["yaml"] }
 dotenvy = { version = "0.15.7", default-features = false }
