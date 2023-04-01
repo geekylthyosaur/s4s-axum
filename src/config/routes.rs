@@ -9,9 +9,20 @@ use crate::{
 };
 
 pub fn routes() -> Router<DbPool> {
+    let user_routes = Router::new()
+        .route("/", get(user::get_all))
+        .route("/me", get(user::me))
+        .route(
+            "/:username",
+            get(user::get_by_username).delete(user::delete),
+        );
+
+    let auth_routes = Router::new()
+        .route("/signup", post(auth::signup))
+        .route("/login", post(auth::login));
+
     Router::new()
         .route("/", get(index))
-        .route("/me", get(user::me))
-        .route("/signup", post(auth::signup))
-        .route("/login", post(auth::login))
+        .nest("/user", user_routes)
+        .nest("/auth", auth_routes)
 }

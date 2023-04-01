@@ -5,6 +5,7 @@ use axum::{
     http::{request::Parts, Request},
     Json, RequestExt, RequestPartsExt, TypedHeader,
 };
+use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
@@ -14,8 +15,12 @@ use crate::{
     storage::{user, DbPool},
 };
 
+pub struct LoggedInUser(pub User);
+pub struct LoggedInUserId(pub Uuid);
+pub struct ValidatedJson<T>(pub T);
+
 #[async_trait]
-impl<S> FromRequestParts<S> for User
+impl<S> FromRequestParts<S> for LoggedInUser
 where
     DbPool: FromRef<S>,
     S: Send + Sync,
@@ -32,11 +37,26 @@ where
         let user = user::get_by_id(&pool, claims.sub())
             .await
             .map_err(Error::from)?;
-        Ok(user)
+        Ok(LoggedInUser(user))
     }
 }
 
-pub struct ValidatedJson<T>(pub T);
+#[async_trait]
+impl<S> FromRequestParts<S> for LoggedInUserId
+where
+    S: Send + Sync,
+{
+    type Rejection = ApiError;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let TypedHeader(Authorization(bearer)) = parts
+            .extract::<TypedHeader<Authorization<Bearer>>>()
+            .await
+            .map_err(Error::from)?;
+        let claims = Claims::verify(bearer.token())?;
+        Ok(LoggedInUserId(claims.sub()))
+    }
+}
 
 #[async_trait]
 impl<S, B, T> FromRequest<S, B> for ValidatedJson<T>

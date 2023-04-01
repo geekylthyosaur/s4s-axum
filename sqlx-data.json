@@ -182,6 +182,96 @@
     },
     "query": "\n            SELECT *\n            FROM users\n            WHERE users.email = $1;\n        "
   },
+  "c849f5686f38effd7337db389e714f526860c3ca32458e1952fdd1211e6ef6a9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "username",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "pwd_hash",
+          "ordinal": 5,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "age",
+          "ordinal": 6,
+          "type_info": "Int4"
+        },
+        {
+          "name": "about",
+          "ordinal": 7,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "verified",
+          "ordinal": 8,
+          "type_info": "Bool"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 9,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 10,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\n            SELECT *\n            FROM users;\n        "
+  },
+  "f818e82d43cf56a40356e04b16c3f6c7473499f205ff747721acbf4bdafa0438": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            DELETE FROM users\n            WHERE users.id = $1;\n        "
+  },
   "ff031eac964d64acb35b3ef07d2bf1448331ca5e3a0642cffc693d382ef21373": {
     "describe": {
       "columns": [

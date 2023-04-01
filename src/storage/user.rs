@@ -5,6 +5,20 @@ use crate::models::user::User;
 
 use super::DbPool;
 
+pub async fn get_all(pool: &DbPool) -> SqlxResult<Vec<User>> {
+    let users = sqlx::query_as!(
+        User,
+        r#"
+            SELECT *
+            FROM users;
+        "#
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(users)
+}
+
 pub async fn get_by_id(pool: &DbPool, id: Uuid) -> SqlxResult<User> {
     let user = sqlx::query_as!(
         User,
@@ -70,6 +84,20 @@ pub async fn create(pool: &DbPool, user: User) -> SqlxResult<()> {
         user.verified,
         user.created_at,
         user.updated_at,
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn delete(pool: &DbPool, id: Uuid) -> SqlxResult<()> {
+    sqlx::query!(
+        r#"
+            DELETE FROM users
+            WHERE users.id = $1;
+        "#,
+        id
     )
     .execute(pool)
     .await?;
