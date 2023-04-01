@@ -15,7 +15,7 @@ serde = { version = "1.0.159", default-features = false }
 serde_json = { version = "1.0.95", default-features = false }
 sqlx = { version = "0.6.3", default-features = false, features = ["uuid", "runtime-tokio-native-tls", "migrate", "postgres", "chrono", "offline", "macros"] }
 thiserror = { version = "1.0.40", default-features = false }
-tokio = { version = "1.27.0", default-features = false, features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.27.0", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
 tracing-subscriber = { version = "0.3.16", default-features = false, features = ["fmt", "ansi"] }
 uuid = { version = "1.3.0", default-features = false, features = ["v4", "serde"] }
 validator = { version = "0.16.0", default-features = false, features = ["derive"] }
