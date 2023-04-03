@@ -9,7 +9,7 @@ pub struct SignupForm {
     pub username: String,
     #[validate(email)]
     pub email: String,
-    #[validate(must_match(other = "repeat_password"))]
+    #[validate(length(min = 8), must_match(other = "repeat_password"))]
     pub password: String,
     repeat_password: String,
 }
@@ -18,6 +18,7 @@ pub struct SignupForm {
 pub struct LoginForm {
     #[validate(length(min = 4, max = 16), custom = "is_lowercase_alphabetic")]
     pub username: String,
+    #[validate(length(min = 8))]
     pub password: String,
 }
 
