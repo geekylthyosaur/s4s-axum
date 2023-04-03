@@ -9,6 +9,8 @@ pub enum Error {
     #[error(transparent)]
     Jwt(#[from] jsonwebtoken::errors::Error),
     #[error(transparent)]
+    Argon2(#[from] argon2::password_hash::Error),
+    #[error(transparent)]
     AxumJson(#[from] axum::extract::rejection::JsonRejection),
     #[error(transparent)]
     AxumExtension(#[from] axum::extract::rejection::ExtensionRejection),
