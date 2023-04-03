@@ -23,6 +23,6 @@ pub fn routes() -> Router<DbPool> {
 
     Router::new()
         .route("/", get(index))
-        .nest("/user", user_routes)
+        .nest("/users", user_routes)
         .nest("/auth", auth_routes)
 }
