@@ -5,7 +5,7 @@ use crate::validators::is_lowercase_alphabetic;
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct SignupForm {
-    #[validate(length(min = 4, max = 16), custom = "is_lowercase_alphabetic")]
+    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphabetic")]
     pub username: String,
     #[validate(email)]
     pub email: String,
