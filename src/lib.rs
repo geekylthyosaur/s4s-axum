@@ -2,12 +2,12 @@
 
 mod auth;
 pub mod config;
-mod dto;
+mod dtos;
 mod error;
 mod extractors;
 mod models;
 mod routes;
-mod service;
+mod services;
 mod storage;
 pub mod telemetry;
 mod validators;

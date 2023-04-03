@@ -22,6 +22,19 @@
     },
     "query": "\n            INSERT INTO users (id, first_name, last_name, username, email, pwd_hash, age, about, verified, created_at, updated_at)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);\n        "
   },
+  "8b2e27b367483591ae96240f55b9a68bcdfdbdcddc1e7b77044840c3850bdee6": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE users \n            SET email = $2\n            WHERE users.id = $1;\n        "
+  },
   "9729cbf24f4f6220d40985d5d646e86cc1686f97ba8936d16242572758066af1": {
     "describe": {
       "columns": [
@@ -181,6 +194,36 @@
       }
     },
     "query": "\n            SELECT *\n            FROM users\n            WHERE users.email = $1;\n        "
+  },
+  "b2d4c0ac135112a0b0a8f8afe90bbe564ceb69555e55c8c79d4cb5fde4a99770": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE users \n            SET pwd_hash = $2\n            WHERE users.id = $1;\n        "
+  },
+  "bd2106a5346ef4553f3cc8222277393b835ab30f761cdb306292d1766703ffd3": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int4",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE users \n            SET (first_name, last_name, username, age, about) = ($2, $3, $4, $5, $6)\n            WHERE users.id = $1;\n        "
   },
   "c849f5686f38effd7337db389e714f526860c3ca32458e1952fdd1211e6ef6a9": {
     "describe": {

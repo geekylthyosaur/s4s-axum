@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::{
     auth::password,
-    dto::{LoginForm, SignupForm},
+    dtos::auth::{LoginForm, SignupForm},
     error::{Error, Result},
     models::user::User,
     storage::{user, DbPool},

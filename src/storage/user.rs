@@ -98,6 +98,61 @@ pub async fn create(pool: &DbPool, user: User) -> SqlxResult<()> {
 }
 
 #[instrument(skip(pool))]
+pub async fn edit(pool: &DbPool, user: User) -> SqlxResult<()> {
+    sqlx::query!(
+        r#"
+            UPDATE users 
+            SET (first_name, last_name, username, age, about) = ($2, $3, $4, $5, $6)
+            WHERE users.id = $1;
+        "#,
+        user.id,
+        user.first_name,
+        user.last_name,
+        user.username,
+        user.age,
+        user.about,
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+#[instrument(skip(pool))]
+pub async fn edit_email(pool: &DbPool, user: User) -> SqlxResult<()> {
+    sqlx::query!(
+        r#"
+            UPDATE users 
+            SET email = $2
+            WHERE users.id = $1;
+        "#,
+        user.id,
+        user.email,
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+#[instrument(skip(pool))]
+pub async fn edit_password(pool: &DbPool, user: User) -> SqlxResult<()> {
+    sqlx::query!(
+        r#"
+            UPDATE users 
+            SET pwd_hash = $2
+            WHERE users.id = $1;
+        "#,
+        user.id,
+        user.pwd_hash,
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+#[instrument(skip(pool))]
 pub async fn delete(pool: &DbPool, id: Uuid) -> SqlxResult<()> {
     sqlx::query!(
         r#"

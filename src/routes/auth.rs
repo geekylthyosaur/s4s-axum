@@ -3,10 +3,10 @@ use tracing::instrument;
 
 use crate::{
     auth::jwt,
-    dto::{AuthBody, LoginForm, SignupForm},
+    dtos::auth::{AuthBody, LoginForm, SignupForm},
     error::ApiResult,
     extractors::ValidatedJson,
-    service::Auth,
+    services::auth::Auth,
     storage::DbPool,
 };
 

@@ -1,5 +1,5 @@
 use axum::{
-    routing::{get, post},
+    routing::{get, post, put},
     Router,
 };
 
@@ -12,6 +12,9 @@ pub fn routes() -> Router<DbPool> {
     let user_routes = Router::new()
         .route("/", get(user::get_all))
         .route("/me", get(user::me))
+        .route("/me/edit", put(user::edit))
+        .route("/me/edit/email", put(user::edit_email))
+        .route("/me/edit/password", put(user::edit_password))
         .route(
             "/:username",
             get(user::get_by_username).delete(user::delete),
