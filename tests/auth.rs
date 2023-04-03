@@ -1,6 +1,6 @@
 mod common;
 
-use axum::{body::Body, http::StatusCode};
+use axum::http::StatusCode;
 use common::TestResult;
 
 use crate::common::{DbPool, TestApp};
@@ -10,10 +10,8 @@ fn signup(pool: DbPool) -> TestResult<()> {
     let mut app = TestApp::spawn(pool);
     let signup_form = TestApp::fake_signup_form_json();
 
-    let request = TestApp::post_request_with_json_body(
-        "/auth/signup",
-        Body::from(serde_json::to_vec(&signup_form)?),
-    )?;
+    let request =
+        TestApp::post_request_with_json_body("/auth/signup", TestApp::json_to_body(signup_form)?)?;
     let response = app.oneshot(request).await?;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -32,16 +30,12 @@ fn login(pool: DbPool) -> TestResult<()> {
     let signup_form = TestApp::fake_signup_form_json();
     let login_form = TestApp::fake_login_form_json(&signup_form);
 
-    let request = TestApp::post_request_with_json_body(
-        "/auth/signup",
-        Body::from(serde_json::to_vec(&signup_form)?),
-    )?;
+    let request =
+        TestApp::post_request_with_json_body("/auth/signup", TestApp::json_to_body(signup_form)?)?;
     let _ = app.oneshot(request).await?;
 
-    let request = TestApp::post_request_with_json_body(
-        "/auth/login",
-        Body::from(serde_json::to_vec(&login_form)?),
-    )?;
+    let request =
+        TestApp::post_request_with_json_body("/auth/login", TestApp::json_to_body(login_form)?)?;
     let response = app.oneshot(request).await?;
 
     assert_eq!(response.status(), StatusCode::OK);

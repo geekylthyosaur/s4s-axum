@@ -38,6 +38,10 @@ impl TestApp {
         Ok(self.app.ready().await?.oneshot(request).await?)
     }
 
+    pub fn json_to_body(json: Value) -> TestResult<Body> {
+        Ok(Body::from(serde_json::to_vec(&json)?))
+    }
+
     pub async fn body_to_json<T: HttpBody>(body: T) -> TestResult<Value> {
         let body = unsafe { hyper::body::to_bytes(body).await.unwrap_unchecked() };
         Ok(serde_json::from_slice(&body)?)
