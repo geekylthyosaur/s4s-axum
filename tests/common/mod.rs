@@ -82,4 +82,12 @@ impl TestApp {
             .header(AUTHORIZATION, header)
             .body(Body::empty())?)
     }
+
+    pub fn delete_request_with_auth_header(uri: &str, header: &str) -> TestResult<Request<Body>> {
+        Ok(Request::builder()
+            .method(Method::DELETE)
+            .uri(uri)
+            .header(AUTHORIZATION, header)
+            .body(Body::empty())?)
+    }
 }
