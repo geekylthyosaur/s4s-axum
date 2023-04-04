@@ -9,7 +9,7 @@ use crate::validators::is_lowercase_alphabetic;
 pub struct User {
     #[serde(skip_serializing)]
     pub id: Uuid,
-    #[validate(length(min = 4, max = 16), custom = "is_lowercase_alphabetic")]
+    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphabetic")]
     pub username: String,
     pub first_name: Option<String>,
     pub last_name: Option<String>,

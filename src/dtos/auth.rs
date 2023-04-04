@@ -16,7 +16,7 @@ pub struct SignupForm {
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct LoginForm {
-    #[validate(length(min = 4, max = 16), custom = "is_lowercase_alphabetic")]
+    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphabetic")]
     pub username: String,
     #[validate(length(min = 8))]
     pub password: String,
