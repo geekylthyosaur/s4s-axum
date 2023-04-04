@@ -10,7 +10,10 @@ use axum::{
     response::Response,
     Router,
 };
-use hyper::{header::CONTENT_TYPE, Method};
+use hyper::{
+    header::{AUTHORIZATION, CONTENT_TYPE},
+    Method,
+};
 use once_cell::sync::Lazy;
 use s4s::config::routes::routes;
 use serde_json::Value;
@@ -49,11 +52,34 @@ impl TestApp {
         Ok(serde_json::from_slice(&body)?)
     }
 
+    pub async fn body_to_token<T: HttpBody>(body: T) -> TestResult<String> {
+        let body = unsafe { hyper::body::to_bytes(body).await.unwrap_unchecked() };
+        let json: Value = serde_json::from_slice(&body)?;
+        Ok(json["token_type"].as_str().unwrap().to_owned()
+            + " "
+            + &json["access_token"].as_str().unwrap())
+    }
+
     pub fn post_request_with_json_body(uri: &str, body: Body) -> TestResult<Request<Body>> {
         Ok(Request::builder()
             .method(Method::POST)
             .uri(uri)
             .header(CONTENT_TYPE, "application/json")
             .body(body)?)
+    }
+
+    pub fn get_request_with_empty_body(uri: &str) -> TestResult<Request<Body>> {
+        Ok(Request::builder()
+            .method(Method::GET)
+            .uri(uri)
+            .body(Body::empty())?)
+    }
+
+    pub fn get_request_with_auth_header(uri: &str, header: &str) -> TestResult<Request<Body>> {
+        Ok(Request::builder()
+            .method(Method::GET)
+            .uri(uri)
+            .header(AUTHORIZATION, header)
+            .body(Body::empty())?)
     }
 }
