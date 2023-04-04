@@ -5,7 +5,9 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]
-    Sqlx(#[from] sqlx::Error),
+    Sqlx(sqlx::Error),
+    #[error("The requested resource was not found.")]
+    NotFound(sqlx::Error),
     #[error(transparent)]
     Jwt(#[from] jsonwebtoken::errors::Error),
     #[error(transparent)]
@@ -13,12 +15,10 @@ pub enum Error {
     #[error(transparent)]
     AxumJson(#[from] axum::extract::rejection::JsonRejection),
     #[error(transparent)]
-    AxumExtension(#[from] axum::extract::rejection::ExtensionRejection),
-    #[error(transparent)]
     AxumTypedHeader(#[from] axum::extract::rejection::TypedHeaderRejection),
     #[error(transparent)]
     Validation(#[from] validator::ValidationErrors),
-    #[error("wrong credentials")]
+    #[error("Wrong credentials.")]
     WrongCredentials,
 }
 
@@ -30,10 +30,20 @@ impl From<Error> for ApiError {
     fn from(err: Error) -> Self {
         let status = match err {
             Error::Validation(_) | Error::AxumJson(_) => StatusCode::BAD_REQUEST,
+            Error::NotFound(_) => StatusCode::NOT_FOUND,
             Error::WrongCredentials => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         };
         let payload = json!({"error": {"message": err.to_string()}});
         (status, Json(payload))
+    }
+}
+
+impl From<sqlx::Error> for Error {
+    fn from(err: sqlx::Error) -> Self {
+        match err {
+            sqlx::Error::RowNotFound => Self::NotFound(err),
+            _ => Self::Sqlx(err),
+        }
     }
 }
