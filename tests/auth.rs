@@ -1,9 +1,8 @@
-mod common;
+pub mod common;
 
-use axum::http::StatusCode;
-use common::TestResult;
+use hyper::StatusCode;
 
-use crate::common::{DbPool, TestApp};
+use crate::common::{Assert, DbPool, TestApp, TestResult};
 
 #[sqlx::test]
 fn signup(pool: DbPool) -> TestResult<()> {
@@ -14,12 +13,13 @@ fn signup(pool: DbPool) -> TestResult<()> {
         TestApp::post_request_with_json_body("/auth/signup", TestApp::json_to_body(signup_form)?)?;
     let response = app.oneshot(request).await?;
 
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let schema = TestApp::access_token_json_schema();
+    let status = response.status();
     let body = TestApp::body_to_json(response.into_body()).await?;
+    let schema = TestApp::access_token_json_schema();
 
-    assert!(schema.validate(&body).is_ok());
+    Assert(status, body)
+        .status(StatusCode::OK)
+        .json_body_with_schema(schema);
 
     Ok(())
 }
@@ -38,12 +38,13 @@ fn login(pool: DbPool) -> TestResult<()> {
         TestApp::post_request_with_json_body("/auth/login", TestApp::json_to_body(login_form)?)?;
     let response = app.oneshot(request).await?;
 
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let schema = TestApp::access_token_json_schema();
+    let status = response.status();
     let body = TestApp::body_to_json(response.into_body()).await?;
+    let schema = TestApp::access_token_json_schema();
 
-    assert!(schema.validate(&body).is_ok());
+    Assert(status, body)
+        .status(StatusCode::OK)
+        .json_body_with_schema(schema);
 
     Ok(())
 }

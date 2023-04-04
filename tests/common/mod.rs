@@ -1,3 +1,4 @@
+mod assert;
 pub mod fake;
 pub mod lazy;
 
@@ -16,6 +17,7 @@ use serde_json::Value;
 use sqlx::PgPool;
 use tower::ServiceExt;
 
+pub use self::assert::Assert;
 use self::lazy::TRACING;
 
 pub type DbPool = PgPool;
