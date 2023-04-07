@@ -87,18 +87,18 @@ pub static USERS_GET_BY_USERNAME_JSON_SCHEMA: Lazy<JSONSchema> = Lazy::new(|| {
 
 impl TestApp {
     pub fn access_token_json_schema() -> &'static JSONSchema {
-        &*ACCESS_TOKEN_JSON_SCHEMA
+        &ACCESS_TOKEN_JSON_SCHEMA
     }
 
     pub fn users_me_json_schema() -> &'static JSONSchema {
-        &*USERS_ME_JSON_SCHEMA
+        &USERS_ME_JSON_SCHEMA
     }
 
     pub fn users_get_all_json_schema() -> &'static JSONSchema {
-        &*USERS_GET_ALL_JSON_SCHEMA
+        &USERS_GET_ALL_JSON_SCHEMA
     }
 
     pub fn users_get_by_username_json_schema() -> &'static JSONSchema {
-        &*USERS_GET_BY_USERNAME_JSON_SCHEMA
+        &USERS_GET_BY_USERNAME_JSON_SCHEMA
     }
 }

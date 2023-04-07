@@ -11,7 +11,7 @@ where
     <T as HttpBody>::Error: std::error::Error,
 {
     pub fn status(self, status: StatusCode) -> Self {
-        debug_assert_eq!(self.0.status(), status, "{}", self.0.status().to_string());
+        debug_assert_eq!(self.0.status(), status, "{}", self.0.status());
         self
     }
 
