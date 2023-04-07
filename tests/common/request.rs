@@ -1,4 +1,7 @@
-use hyper::{Method, Request, Body, header::{CONTENT_TYPE, AUTHORIZATION}};
+use hyper::{
+    header::{AUTHORIZATION, CONTENT_TYPE},
+    Body, Method, Request,
+};
 use serde_json::Value;
 
 use super::TestResult;
@@ -13,17 +16,16 @@ pub struct TestRequest {
 
 impl TestRequest {
     pub fn build(self) -> TestResult<Request<Body>> {
-        let req = Request::builder()
-            .method(self.method)
-            .uri(self.uri);
+        let req = Request::builder().method(self.method).uri(self.uri);
 
         let req = if let Some(token) = self.token {
             req.header(AUTHORIZATION, token)
-        } else { req };
+        } else {
+            req
+        };
 
         let req = if let Some(json) = self.json {
-            req
-                .header(CONTENT_TYPE, "application/json")
+            req.header(CONTENT_TYPE, "application/json")
                 .body(Body::from(serde_json::to_vec(&json)?))
         } else {
             req.body(Body::empty())
@@ -33,26 +35,48 @@ impl TestRequest {
     }
 
     pub fn get(uri: impl Into<String>) -> Self {
-        Self { uri: uri.into(), method: Method::GET, ..Self::default() }
+        Self {
+            uri: uri.into(),
+            method: Method::GET,
+            ..Self::default()
+        }
     }
 
     pub fn post(uri: impl Into<String>) -> Self {
-        Self { uri: uri.into(), method: Method::POST, ..Self::default() }
+        Self {
+            uri: uri.into(),
+            method: Method::POST,
+            ..Self::default()
+        }
     }
 
     pub fn put(uri: impl Into<String>) -> Self {
-        Self { uri: uri.into(), method: Method::PUT, ..Self::default() }
+        Self {
+            uri: uri.into(),
+            method: Method::PUT,
+            ..Self::default()
+        }
     }
 
     pub fn delete(uri: impl Into<String>) -> Self {
-        Self { uri: uri.into(), method: Method::DELETE, ..Self::default() }
+        Self {
+            uri: uri.into(),
+            method: Method::DELETE,
+            ..Self::default()
+        }
     }
 
     pub fn with_json(self, json: impl Into<Value>) -> Self {
-        Self { json: Some(json.into()), ..self }
+        Self {
+            json: Some(json.into()),
+            ..self
+        }
     }
 
     pub fn with_auth(self, token: impl Into<String>) -> Self {
-        Self { token: Some(token.into()), ..self }
+        Self {
+            token: Some(token.into()),
+            ..self
+        }
     }
 }

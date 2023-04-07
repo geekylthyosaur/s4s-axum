@@ -1,9 +1,8 @@
 pub mod common;
 
-use assert_json_diff::assert_json_include;
 use hyper::StatusCode;
 
-use crate::common::{Assert, DbPool, TestApp, TestResult, TestRequest};
+use crate::common::{Assert, DbPool, TestApp, TestRequest, TestResult};
 
 #[sqlx::test]
 fn get_all(pool: DbPool) -> TestResult<()> {
@@ -12,13 +11,10 @@ fn get_all(pool: DbPool) -> TestResult<()> {
     let request = TestRequest::get("/users").build()?;
     let response = app.oneshot(request).await?;
 
-    let status = response.status();
-    let body = TestApp::body_to_json(response.into_body()).await?;
-    let schema = TestApp::users_get_all_json_schema();
-
-    Assert(status, body)
+    Assert(response)
         .status(StatusCode::OK)
-        .json_body_with_schema(schema);
+        .json_schema(TestApp::users_get_all_json_schema())
+        .await;
 
     Ok(())
 }
@@ -34,17 +30,13 @@ fn get_by_username(pool: DbPool) -> TestResult<()> {
         .build()?;
     let _ = app.oneshot(request).await?;
 
-    let request = TestRequest::get(format!("/users/{}", username))
-        .build()?;
+    let request = TestRequest::get(format!("/users/{}", username)).build()?;
     let response = app.oneshot(request).await?;
 
-    let status = response.status();
-    let body = TestApp::body_to_json(response.into_body()).await?;
-    let schema = TestApp::users_get_by_username_json_schema();
-
-    Assert(status, body)
+    Assert(response)
         .status(StatusCode::OK)
-        .json_body_with_schema(schema);
+        .json_schema(TestApp::users_get_by_username_json_schema())
+        .await;
 
     Ok(())
 }
@@ -61,14 +53,13 @@ fn delete(pool: DbPool) -> TestResult<()> {
 
     let token = TestApp::body_to_token(response.into_body()).await?;
 
-    let request = TestRequest::delete("/users/me")
-        .with_auth(token)
-        .build()?;
+    let request = TestRequest::delete("/users/me").with_auth(token).build()?;
     let response = app.oneshot(request).await?;
 
-    let status = response.status();
-
-    debug_assert_eq!(status, StatusCode::NO_CONTENT);
+    Assert(response)
+        .status(StatusCode::NO_CONTENT)
+        .empty_body()
+        .await;
 
     Ok(())
 }
@@ -85,18 +76,13 @@ fn me(pool: DbPool) -> TestResult<()> {
 
     let token = TestApp::body_to_token(response.into_body()).await?;
 
-    let request = TestRequest::get("/users/me")
-        .with_auth(token)
-        .build()?;
+    let request = TestRequest::get("/users/me").with_auth(token).build()?;
     let response = app.oneshot(request).await?;
 
-    let status = response.status();
-    let body = TestApp::body_to_json(response.into_body()).await?;
-    let schema = TestApp::users_me_json_schema();
-
-    Assert(status, body)
+    Assert(response)
         .status(StatusCode::OK)
-        .json_body_with_schema(schema);
+        .json_schema(TestApp::users_me_json_schema())
+        .await;
 
     Ok(())
 }
@@ -120,17 +106,15 @@ fn edit(pool: DbPool) -> TestResult<()> {
         .with_auth(&token)
         .build()?;
 
-    let _ = app.oneshot(request).await?;
+    let response = app.oneshot(request).await?;
 
-    let request = TestRequest::get("/users/me")
-        .with_auth(token)
-        .build()?;
+    Assert(response).status(StatusCode::NO_CONTENT);
+
+    let request = TestRequest::get("/users/me").with_auth(token).build()?;
 
     let response = app.oneshot(request).await?;
 
-    let body = TestApp::body_to_json(response.into_body()).await?;
-
-    assert_json_include!(actual: body, expected: edit_form);
+    Assert(response).json_include(edit_form).await;
 
     Ok(())
 }
@@ -154,18 +138,15 @@ fn edit_email(pool: DbPool) -> TestResult<()> {
         .with_auth(&token)
         .build()?;
 
-    let _ = app.oneshot(request).await?;
+    let response = app.oneshot(request).await?;
 
-    let request = TestRequest::get("/users/me")
-        .with_auth(token)
-        .build()?;
+    Assert(response).status(StatusCode::NO_CONTENT);
+
+    let request = TestRequest::get("/users/me").with_auth(token).build()?;
 
     let response = app.oneshot(request).await?;
 
-    let body = TestApp::body_to_json(response.into_body()).await?;
-
-    assert_json_include!(actual: body, expected: edit_form);
+    Assert(response).json_include(edit_form).await;
 
     Ok(())
 }
-

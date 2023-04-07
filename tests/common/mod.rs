@@ -22,8 +22,8 @@ use sqlx::PgPool;
 use tower::ServiceExt;
 
 pub use self::assert::Assert;
-pub use self::request::TestRequest;
 use self::lazy::TRACING;
+pub use self::request::TestRequest;
 
 pub type DbPool = PgPool;
 pub type TestResult<T> = Result<T, Box<dyn Error>>;
@@ -55,7 +55,8 @@ impl TestApp {
     }
 
     pub async fn body_to_token<T: HttpBody>(body: T) -> TestResult<String>
-        where <T as HttpBody>::Error: std::error::Error 
+    where
+        <T as HttpBody>::Error: std::error::Error,
     {
         let body = hyper::body::to_bytes(body).await.unwrap();
         let json: Value = serde_json::from_slice(&body)?;

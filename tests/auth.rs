@@ -2,7 +2,7 @@ pub mod common;
 
 use hyper::StatusCode;
 
-use crate::common::{Assert, DbPool, TestApp, TestResult, TestRequest};
+use crate::common::{Assert, DbPool, TestApp, TestRequest, TestResult};
 
 #[sqlx::test]
 fn signup(pool: DbPool) -> TestResult<()> {
@@ -14,13 +14,10 @@ fn signup(pool: DbPool) -> TestResult<()> {
         .build()?;
     let response = app.oneshot(request).await?;
 
-    let status = response.status();
-    let body = TestApp::body_to_json(response.into_body()).await?;
-    let schema = TestApp::access_token_json_schema();
-
-    Assert(status, body)
+    Assert(response)
         .status(StatusCode::OK)
-        .json_body_with_schema(schema);
+        .json_schema(TestApp::access_token_json_schema())
+        .await;
 
     Ok(())
 }
@@ -41,13 +38,10 @@ fn login(pool: DbPool) -> TestResult<()> {
         .build()?;
     let response = app.oneshot(request).await?;
 
-    let status = response.status();
-    let body = TestApp::body_to_json(response.into_body()).await?;
-    let schema = TestApp::access_token_json_schema();
-
-    Assert(status, body)
+    Assert(response)
         .status(StatusCode::OK)
-        .json_body_with_schema(schema);
+        .json_schema(TestApp::access_token_json_schema())
+        .await;
 
     Ok(())
 }

@@ -1,7 +1,10 @@
 use std::ops::Range;
 
 use fake::{
-    faker::{internet::raw::{Password, SafeEmail, Username}, name::raw::{FirstName, LastName}},
+    faker::{
+        internet::raw::{Password, SafeEmail, Username},
+        name::raw::{FirstName, LastName},
+    },
     locales::EN,
     Fake,
 };

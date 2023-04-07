@@ -58,10 +58,7 @@ pub async fn edit_email(
     ValidatedJson(form): ValidatedJson<EditUserEmailForm>,
 ) -> ApiResult<StatusCode> {
     let user = user.map(|LoggedInUser(u)| u)?;
-    let user = User {
-        email: form.email,
-        ..user
-    };
+    let user = user.with(form);
     user::edit_email(&pool, user).await.map_err(Error::from)?;
 
     Ok(StatusCode::NO_CONTENT)
