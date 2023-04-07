@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::validators::is_lowercase_alphabetic;
+use crate::validators::is_lowercase_alphanumeric;
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct SignupForm {
-    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphabetic")]
+    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphanumeric")]
     pub username: String,
     #[validate(email)]
     pub email: String,
@@ -16,7 +16,7 @@ pub struct SignupForm {
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct LoginForm {
-    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphabetic")]
+    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphanumeric")]
     pub username: String,
     #[validate(length(min = 8))]
     pub password: String,

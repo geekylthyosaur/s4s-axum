@@ -1,11 +1,11 @@
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::validators::is_lowercase_alphabetic;
+use crate::validators::is_lowercase_alphanumeric;
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct EditUserForm {
-    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphabetic")]
+    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphanumeric")]
     pub username: String,
     pub first_name: Option<String>,
     pub last_name: Option<String>,

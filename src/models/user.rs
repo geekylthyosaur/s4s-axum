@@ -3,13 +3,13 @@ use serde::Serialize;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::validators::is_lowercase_alphabetic;
+use crate::validators::is_lowercase_alphanumeric;
 
 #[derive(Debug, Serialize, Validate)]
 pub struct User {
     #[serde(skip_serializing)]
     pub id: Uuid,
-    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphabetic")]
+    #[validate(length(min = 4, max = 32), custom = "is_lowercase_alphanumeric")]
     pub username: String,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
