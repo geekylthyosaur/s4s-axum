@@ -6,7 +6,7 @@ pub struct Telemetry;
 impl Telemetry {
     pub fn initialize() {
         let stdout = tracing_subscriber::fmt::layer().pretty();
-        let filter = EnvFilter::try_from_default_env().unwrap();
+        let filter = EnvFilter::try_from_default_env().expect("Failed to initialize env filter!");
         Registry::default().with(stdout).with(filter).init();
         LogTracer::init().expect("Failed to set logger!");
     }
