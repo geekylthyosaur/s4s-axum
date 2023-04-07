@@ -1,6 +1,7 @@
 mod assert;
-pub mod fake;
-pub mod lazy;
+mod fake;
+mod lazy;
+mod request;
 
 use std::error::Error;
 
@@ -21,6 +22,7 @@ use sqlx::PgPool;
 use tower::ServiceExt;
 
 pub use self::assert::Assert;
+pub use self::request::TestRequest;
 use self::lazy::TRACING;
 
 pub type DbPool = PgPool;
@@ -52,12 +54,14 @@ impl TestApp {
         Ok(serde_json::from_slice(&body)?)
     }
 
-    pub async fn body_to_token<T: HttpBody>(body: T) -> TestResult<String> {
-        let body = unsafe { hyper::body::to_bytes(body).await.unwrap_unchecked() };
+    pub async fn body_to_token<T: HttpBody>(body: T) -> TestResult<String>
+        where <T as HttpBody>::Error: std::error::Error 
+    {
+        let body = hyper::body::to_bytes(body).await.unwrap();
         let json: Value = serde_json::from_slice(&body)?;
-        Ok(json["token_type"].as_str().unwrap().to_owned()
-            + " "
-            + &json["access_token"].as_str().unwrap())
+        let token_type = json["token_type"].as_str().unwrap().to_owned();
+        let token = json["access_token"].as_str().unwrap();
+        Ok(format!("{} {}", token_type, &token))
     }
 
     pub fn post_request_with_json_body(uri: &str, body: Body) -> TestResult<Request<Body>> {

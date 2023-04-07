@@ -2,15 +2,16 @@ pub mod common;
 
 use hyper::StatusCode;
 
-use crate::common::{Assert, DbPool, TestApp, TestResult};
+use crate::common::{Assert, DbPool, TestApp, TestResult, TestRequest};
 
 #[sqlx::test]
 fn signup(pool: DbPool) -> TestResult<()> {
     let mut app = TestApp::spawn(pool);
     let signup_form = TestApp::fake_signup_form_json();
 
-    let request =
-        TestApp::post_request_with_json_body("/auth/signup", TestApp::json_to_body(signup_form)?)?;
+    let request = TestRequest::post("/auth/signup")
+        .with_json(signup_form)
+        .build()?;
     let response = app.oneshot(request).await?;
 
     let status = response.status();
@@ -30,12 +31,14 @@ fn login(pool: DbPool) -> TestResult<()> {
     let signup_form = TestApp::fake_signup_form_json();
     let login_form = TestApp::fake_login_form_json(&signup_form);
 
-    let request =
-        TestApp::post_request_with_json_body("/auth/signup", TestApp::json_to_body(signup_form)?)?;
+    let request = TestRequest::post("/auth/signup")
+        .with_json(signup_form)
+        .build()?;
     let _ = app.oneshot(request).await?;
 
-    let request =
-        TestApp::post_request_with_json_body("/auth/login", TestApp::json_to_body(login_form)?)?;
+    let request = TestRequest::post("/auth/login")
+        .with_json(login_form)
+        .build()?;
     let response = app.oneshot(request).await?;
 
     let status = response.status();
