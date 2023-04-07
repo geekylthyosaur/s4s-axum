@@ -11,9 +11,9 @@ use tokio::signal;
 
 #[tokio::main]
 async fn main() {
-    Telemetry::initialize();
-
     dotenvy::dotenv().expect("Failed to load .env!");
+
+    Telemetry::initialize();
 
     let config = Config::new().expect("Failed to read configuration!");
 
